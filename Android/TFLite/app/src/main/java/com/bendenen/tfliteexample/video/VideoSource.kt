@@ -1,6 +1,6 @@
 package com.bendenen.tfliteexample.video
 
-internal interface VideoSource {
+interface VideoSource {
 
     fun getSourceWidth(): Int
 

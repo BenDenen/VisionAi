@@ -2,7 +2,7 @@ package com.bendenen.tfliteexample.video
 
 import android.graphics.Bitmap
 
-internal interface VideoSourceListener {
+interface VideoSourceListener {
 
     fun onNewFrame(rgbBytes: ByteArray)
 
