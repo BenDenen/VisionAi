@@ -12,6 +12,9 @@ import android.renderscript.RenderScript
 import android.util.Size
 import com.bendenen.tfliteexample.video.VideoSourceListener
 import com.bendenen.tfliteexample.video.VideoSource
+import com.bendenen.tfliteexample.video.camera2.render.CameraRender
+import com.bendenen.tfliteexample.video.camera2.render.RenderActionsListener
+import com.bendenen.tfliteexample.video.camera2.render.RenderScriptCameraRender
 import java.util.*
 import java.util.concurrent.*
 
@@ -20,19 +23,13 @@ internal class Camera2VideoSourceImpl(
     private val width: Int,
     private val height: Int
 ) : VideoSource, RenderActionsListener {
-
     private var videoSourceListener: VideoSourceListener? = null
 
-    /** An Render that handles image capture.  */
-    private lateinit var yuv2RgbRender: Yuv2RgbRender
+    private lateinit var cameraRender: CameraRender
+    private var useBitmap = false
 
     /** The [Size] of camera preview.  */
     private lateinit var previewSize: Size
-
-    private lateinit var rgbaBytes: ByteArray
-    private lateinit var rgbBitmap: Bitmap
-
-    private var useBitmap = false
 
     /** ID of the current [CameraDevice].  */
     private lateinit var cameraId: String
@@ -51,7 +48,6 @@ internal class Camera2VideoSourceImpl(
 
     /** An additional thread for running tasks that shouldn't block the UI.  */
     private var backgroundThread: HandlerThread? = null
-
 
     /** [CameraDevice.StateCallback] is called when [CameraDevice] changes its state.  */
     private val stateCallback = object : CameraDevice.StateCallback() {
@@ -94,6 +90,7 @@ internal class Camera2VideoSourceImpl(
         }
     }
 
+
     /**
      * Orientation of the camera sensor
      */
@@ -119,36 +116,35 @@ internal class Camera2VideoSourceImpl(
     }
 
     override fun release() {
-        yuv2RgbRender.release()
+        cameraRender.release()
     }
 
     override fun useBitmap(useBitmap: Boolean) {
-        if (::yuv2RgbRender.isInitialized) {
-            yuv2RgbRender.useBitmap(useBitmap)
-        }
-
         this.useBitmap = useBitmap
     }
-    // end
-
 
     // Render actions
-    override fun getRgbBytesArray(): ByteArray = rgbaBytes
-
-    override fun getBitmap(): Bitmap = rgbBitmap
-
-    override fun onDataReady() {
-        videoSourceListener?.onNewFrame(rgbaBytes)
-        if (useBitmap) {
-            videoSourceListener?.onNewBitmap(rgbBitmap)
-        }
+    override fun onNewRGBBytes(byteArray: ByteArray) {
+        videoSourceListener?.onNewFrame(byteArray)
     }
+
+    override fun onNewBitmap(bitmap: Bitmap) {
+        videoSourceListener?.onNewBitmap(bitmap)
+    }
+
+    override fun useBitmap(): Boolean = useBitmap
     // end
 
     @SuppressLint("MissingPermission")
     private fun openSource() {
         setUpCameraOutputs()
-        yuv2RgbRender = Yuv2RgbRender(RenderScript.create(application), previewSize, this)
+        if(!::cameraRender.isInitialized) {
+            cameraRender = RenderScriptCameraRender(
+                RenderScript.create(application),
+                previewSize
+            )
+            cameraRender.renderActionsListener = this
+        }
 
         val manager = application.getSystemService(Context.CAMERA_SERVICE) as CameraManager
         try {
@@ -207,11 +203,11 @@ internal class Camera2VideoSourceImpl(
             cameraDevice?.let { camera ->
 
                 val previewRequestBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW).apply {
-                    addTarget(yuv2RgbRender.getInputNormalSurface())
+                    addTarget(cameraRender.getSurface())
                 }
 
                 camera.createCaptureSession(
-                    listOf(yuv2RgbRender.getInputNormalSurface()),
+                    listOf(cameraRender.getSurface()),
                     object : CameraCaptureSession.StateCallback() {
                         override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
                             cameraOpenCloseLock.acquire()
@@ -284,9 +280,6 @@ internal class Camera2VideoSourceImpl(
 
                 /* Orientation of the camera sensor */
                 sensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION)!!
-
-                rgbaBytes = ByteArray(previewSize.width * previewSize.height * 4)
-                rgbBitmap = Bitmap.createBitmap(previewSize.width, previewSize.height, Bitmap.Config.ARGB_8888)
 
                 this.cameraId = cameraId
 
