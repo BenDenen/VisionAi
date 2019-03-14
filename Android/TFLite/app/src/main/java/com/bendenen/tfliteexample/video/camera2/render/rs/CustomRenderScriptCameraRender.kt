@@ -1,21 +1,22 @@
-package com.bendenen.tfliteexample.video.camera2.render
+package com.bendenen.tfliteexample.video.camera2.render.rs
 
 import android.graphics.Bitmap
 import android.graphics.ImageFormat
 import android.renderscript.*
 import android.util.Size
 import android.view.Surface
+import com.bendenen.tfliteexample.ScriptC_Yuv2Rgb
+import com.bendenen.tfliteexample.video.camera2.render.CameraRender
 
-internal class RenderScriptCameraRender(
+class CustomRenderScriptCameraRender(
     renderScript: RenderScript,
     private val previewSize: Size
 ) : CameraRender(), Allocation.OnBufferAvailableListener {
 
-    override fun getSurface(): Surface = inputNormalAllocation.surface
-
     private val inputNormalAllocation: Allocation
+
     private val outputAllocation: Allocation
-    private val scriptC = ScriptIntrinsicYuvToRGB.create(renderScript, Element.RGBA_8888(renderScript))
+    private val scriptC = ScriptC_Yuv2Rgb(renderScript)
     private val rgbByteArray: ByteArray = ByteArray(previewSize.width * previewSize.height * 4)
     private lateinit var bitmap: Bitmap
 
@@ -38,9 +39,16 @@ internal class RenderScriptCameraRender(
             Allocation.USAGE_SCRIPT
         )
 
-        scriptC.setInput(inputNormalAllocation)
+
+        // Bind to script level -  set the allocation input and parameters from the java into the script level (thru JNI)
+        scriptC._gIn = inputNormalAllocation
+        scriptC._width = previewSize.width
+        scriptC._height = previewSize.height
+
         inputNormalAllocation.setOnBufferAvailableListener(this)
     }
+
+    override fun getSurface(): Surface = inputNormalAllocation.surface
 
     override fun onBufferAvailable(a: Allocation) {
 
@@ -50,7 +58,7 @@ internal class RenderScriptCameraRender(
         inputNormalAllocation.ioReceive()
 
         // Run processing pass
-        scriptC.forEach(outputAllocation)
+        scriptC.forEach_yuvToRgb(outputAllocation)
 
         outputAllocation.copyTo(rgbByteArray)
         listener.onNewRGBBytes(rgbByteArray)

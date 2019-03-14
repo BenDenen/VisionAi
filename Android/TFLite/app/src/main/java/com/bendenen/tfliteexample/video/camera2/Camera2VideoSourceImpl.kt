@@ -14,7 +14,8 @@ import com.bendenen.tfliteexample.video.VideoSourceListener
 import com.bendenen.tfliteexample.video.VideoSource
 import com.bendenen.tfliteexample.video.camera2.render.CameraRender
 import com.bendenen.tfliteexample.video.camera2.render.RenderActionsListener
-import com.bendenen.tfliteexample.video.camera2.render.RenderScriptCameraRender
+import com.bendenen.tfliteexample.video.camera2.render.rs.CustomRenderScriptCameraRender
+import com.bendenen.tfliteexample.video.camera2.render.rs.IntrinsicRenderScriptCameraRender
 import java.util.*
 import java.util.concurrent.*
 
@@ -139,7 +140,7 @@ internal class Camera2VideoSourceImpl(
     private fun openSource() {
         setUpCameraOutputs()
         if(!::cameraRender.isInitialized) {
-            cameraRender = RenderScriptCameraRender(
+            cameraRender = CustomRenderScriptCameraRender(
                 RenderScript.create(application),
                 previewSize
             )

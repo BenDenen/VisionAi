@@ -79,7 +79,7 @@ class MainActivity : AppCompatActivity(), VideoSourceListener {
         private const val PERMISSIONS_REQUEST_CODE = 1
 
         // Work resolution
-        private const val FRAME_WIDTH = 1920
-        private const val FRAME_HEIGHT = 1080
+        private const val FRAME_WIDTH = 640
+        private const val FRAME_HEIGHT = 480
     }
 }
