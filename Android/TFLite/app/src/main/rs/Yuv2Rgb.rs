@@ -15,9 +15,9 @@ void yuvToRgb(uchar4 *v_out, const void *usrData, uint32_t x, uint32_t y) {
     int v = (int)( rsGetElementAt_uchar(gIn, index) & 0xFF ) -128;
     int u = (int)( rsGetElementAt_uchar(gIn, index+1) & 0xFF ) -128;
 
-    int r = (int) (1.164f * yp  + 1.596f * v );
-    int g = (int) (1.164f * yp  - 0.813f * v  - 0.391f * u);
-    int b = (int) (1.164f * yp  + 2.018f * u );
+    int r = (int) (1.164f * yp  + 1.140f * v );
+    int g = (int) (1.164f * yp  - 0.581f * v  - 0.395f * u);
+    int b = (int) (1.164f * yp  + 2.032f * u );
 
     r = r>255? 255 : r<0 ? 0 : r;
     g = g>255? 255 : g<0 ? 0 : g;
