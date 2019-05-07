@@ -10,19 +10,19 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.renderscript.RenderScript
 import android.util.Size
-import com.bendenen.tfliteexample.video.VideoSourceListener
 import com.bendenen.tfliteexample.video.VideoSource
+import com.bendenen.tfliteexample.video.VideoSourceListener
 import com.bendenen.tfliteexample.video.camera2.render.CameraRender
 import com.bendenen.tfliteexample.video.camera2.render.RenderActionsListener
-import com.bendenen.tfliteexample.video.camera2.render.rs.CustomRenderScriptCameraRender
 import com.bendenen.tfliteexample.video.camera2.render.rs.IntrinsicRenderScriptCameraRender
 import java.util.*
-import java.util.concurrent.*
+import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
 
 internal class Camera2VideoSourceImpl(
-    private val application: Application,
-    private val width: Int,
-    private val height: Int
+        private val application: Application,
+        private val width: Int,
+        private val height: Int
 ) : VideoSource, RenderActionsListener {
     private var videoSourceListener: VideoSourceListener? = null
 
@@ -77,16 +77,16 @@ internal class Camera2VideoSourceImpl(
     private val captureCallback = object : CameraCaptureSession.CaptureCallback() {
 
         override fun onCaptureProgressed(
-            session: CameraCaptureSession,
-            request: CaptureRequest,
-            partialResult: CaptureResult
+                session: CameraCaptureSession,
+                request: CaptureRequest,
+                partialResult: CaptureResult
         ) {
         }
 
         override fun onCaptureCompleted(
-            session: CameraCaptureSession,
-            request: CaptureRequest,
-            result: TotalCaptureResult
+                session: CameraCaptureSession,
+                request: CaptureRequest,
+                result: TotalCaptureResult
         ) {
         }
     }
@@ -139,10 +139,10 @@ internal class Camera2VideoSourceImpl(
     @SuppressLint("MissingPermission")
     private fun openSource() {
         setUpCameraOutputs()
-        if(!::cameraRender.isInitialized) {
-            cameraRender = CustomRenderScriptCameraRender(
-                RenderScript.create(application),
-                previewSize
+        if (!::cameraRender.isInitialized) {
+            cameraRender = IntrinsicRenderScriptCameraRender(
+                    RenderScript.create(application),
+                    previewSize
             )
             cameraRender.renderActionsListener = this
         }
@@ -208,43 +208,43 @@ internal class Camera2VideoSourceImpl(
                 }
 
                 camera.createCaptureSession(
-                    listOf(cameraRender.getSurface()),
-                    object : CameraCaptureSession.StateCallback() {
-                        override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
-                            cameraOpenCloseLock.acquire()
-                            // The camera is already closed
-                            if (cameraDevice == null) {
-                                cameraOpenCloseLock.release()
-                                return
+                        listOf(cameraRender.getSurface()),
+                        object : CameraCaptureSession.StateCallback() {
+                            override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
+                                cameraOpenCloseLock.acquire()
+                                // The camera is already closed
+                                if (cameraDevice == null) {
+                                    cameraOpenCloseLock.release()
+                                    return
+                                }
+                                // When the session is ready, we start displaying the preview.
+                                captureSession = cameraCaptureSession
+
+                                try {
+                                    // Auto focus should be continuous for camera preview.
+                                    previewRequestBuilder.set(
+                                            CaptureRequest.CONTROL_AF_MODE,
+                                            CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+                                    )
+
+                                    // Finally, we start displaying the camera preview.
+                                    cameraCaptureSession.setRepeatingRequest(
+                                            previewRequestBuilder.build(),
+                                            captureCallback,
+                                            backgroundHandler
+                                    )
+                                } catch (e: CameraAccessException) {
+                                    e.printStackTrace()
+                                } finally {
+                                    cameraOpenCloseLock.release()
+                                }
                             }
-                            // When the session is ready, we start displaying the preview.
-                            captureSession = cameraCaptureSession
 
-                            try {
-                                // Auto focus should be continuous for camera preview.
-                                previewRequestBuilder.set(
-                                    CaptureRequest.CONTROL_AF_MODE,
-                                    CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
-                                )
-
-                                // Finally, we start displaying the camera preview.
-                                cameraCaptureSession.setRepeatingRequest(
-                                    previewRequestBuilder.build(),
-                                    captureCallback,
-                                    backgroundHandler
-                                )
-                            } catch (e: CameraAccessException) {
-                                e.printStackTrace()
-                            } finally {
-                                cameraOpenCloseLock.release()
+                            override fun onConfigureFailed(cameraCaptureSession: CameraCaptureSession) {
+                                // TODO: Proceed edge case
                             }
-                        }
-
-                        override fun onConfigureFailed(cameraCaptureSession: CameraCaptureSession) {
-                            // TODO: Proceed edge case
-                        }
-                    },
-                    null
+                        },
+                        null
                 )
             }
         } catch (e: CameraAccessException) {
@@ -271,12 +271,12 @@ internal class Camera2VideoSourceImpl(
                 }
 
                 val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-                    ?: continue
+                        ?: continue
 
                 previewSize = chooseOptimalSize(
-                    choices = map.getOutputSizes(SurfaceTexture::class.java),
-                    width = width,
-                    height = height
+                        choices = map.getOutputSizes(SurfaceTexture::class.java),
+                        width = width,
+                        height = height
                 )
 
                 /* Orientation of the camera sensor */
