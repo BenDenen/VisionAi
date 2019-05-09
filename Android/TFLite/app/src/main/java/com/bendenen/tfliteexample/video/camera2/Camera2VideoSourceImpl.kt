@@ -12,9 +12,9 @@ import android.renderscript.RenderScript
 import android.util.Size
 import com.bendenen.tfliteexample.video.VideoSource
 import com.bendenen.tfliteexample.video.VideoSourceListener
-import com.bendenen.tfliteexample.video.camera2.render.CameraRender
-import com.bendenen.tfliteexample.video.camera2.render.RenderActionsListener
-import com.bendenen.tfliteexample.video.camera2.render.rs.IntrinsicRenderScriptCameraRender
+import com.bendenen.tfliteexample.video.render.ImageRender
+import com.bendenen.tfliteexample.video.render.RenderActionsListener
+import com.bendenen.tfliteexample.video.render.rs.IntrinsicRenderScriptImageRender
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -26,7 +26,7 @@ internal class Camera2VideoSourceImpl(
 ) : VideoSource, RenderActionsListener {
     private var videoSourceListener: VideoSourceListener? = null
 
-    private lateinit var cameraRender: CameraRender
+    private lateinit var imageRender: ImageRender
     private var useBitmap = false
 
     /** The [Size] of camera preview.  */
@@ -117,7 +117,7 @@ internal class Camera2VideoSourceImpl(
     }
 
     override fun release() {
-        cameraRender.release()
+        imageRender.release()
     }
 
     override fun useBitmap(useBitmap: Boolean) {
@@ -139,12 +139,12 @@ internal class Camera2VideoSourceImpl(
     @SuppressLint("MissingPermission")
     private fun openSource() {
         setUpCameraOutputs()
-        if (!::cameraRender.isInitialized) {
-            cameraRender = IntrinsicRenderScriptCameraRender(
-                    RenderScript.create(application),
-                    previewSize
+        if (!::imageRender.isInitialized) {
+            imageRender = IntrinsicRenderScriptImageRender(
+                RenderScript.create(application),
+                previewSize
             )
-            cameraRender.renderActionsListener = this
+            imageRender.renderActionsListener = this
         }
 
         val manager = application.getSystemService(Context.CAMERA_SERVICE) as CameraManager
@@ -204,11 +204,11 @@ internal class Camera2VideoSourceImpl(
             cameraDevice?.let { camera ->
 
                 val previewRequestBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW).apply {
-                    addTarget(cameraRender.getSurface())
+                    addTarget(imageRender.getSurface())
                 }
 
                 camera.createCaptureSession(
-                        listOf(cameraRender.getSurface()),
+                        listOf(imageRender.getSurface()),
                         object : CameraCaptureSession.StateCallback() {
                             override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
                                 cameraOpenCloseLock.acquire()
