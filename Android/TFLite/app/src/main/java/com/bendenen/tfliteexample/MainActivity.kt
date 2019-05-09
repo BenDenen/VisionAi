@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat
 import com.bendenen.tfliteexample.video.VideoSource
 import com.bendenen.tfliteexample.video.VideoSourceListener
 import com.bendenen.tfliteexample.video.camera2.Camera2VideoSourceImpl
+import com.bendenen.tfliteexample.video.mediacodec.MediaCodecVideoSourceImpl
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), VideoSourceListener {
@@ -19,7 +20,7 @@ class MainActivity : AppCompatActivity(), VideoSourceListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        videoSource = Camera2VideoSourceImpl(application, FRAME_WIDTH, FRAME_HEIGHT)
+        videoSource = MediaCodecVideoSourceImpl(application, FRAME_WIDTH, FRAME_HEIGHT)
 
         if (!allPermissionsGranted() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(getRequiredPermissions(), PERMISSIONS_REQUEST_CODE)
