@@ -6,21 +6,30 @@ import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.bendenen.tfliteexample.ml.Classifier
 import com.bendenen.tfliteexample.video.VideoSource
 import com.bendenen.tfliteexample.video.VideoSourceListener
 import com.bendenen.tfliteexample.video.camera2.Camera2VideoSourceImpl
 import com.bendenen.tfliteexample.video.mediacodec.MediaCodecVideoSourceImpl
+import com.bendenen.tfliteexample.videoprocessor.VideoProcessor
+import com.bendenen.tfliteexample.videoprocessor.VideoProcessorListener
+import com.bendenen.tfliteexample.videoprocessor.tflite.TfLiteVideoProcessorImpl
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity(), VideoSourceListener {
+class MainActivity : AppCompatActivity(), VideoProcessorListener {
 
-    private lateinit var videoSource: VideoSource
+    private lateinit var videoProcessor: VideoProcessor
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        videoSource = MediaCodecVideoSourceImpl(application, FRAME_WIDTH, FRAME_HEIGHT)
+        videoProcessor = TfLiteVideoProcessorImpl(
+            application,
+            FRAME_WIDTH,
+            FRAME_HEIGHT,
+            this)
 
         if (!allPermissionsGranted() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(getRequiredPermissions(), PERMISSIONS_REQUEST_CODE)
@@ -31,26 +40,21 @@ class MainActivity : AppCompatActivity(), VideoSourceListener {
     override fun onResume() {
         super.onResume()
         if (allPermissionsGranted()) {
-            videoSource.useBitmap(true)
-            videoSource.attach(this)
+            videoProcessor.start()
         }
     }
 
     override fun onPause() {
         if (allPermissionsGranted()) {
-            videoSource.detach()
+            videoProcessor.stop()
         }
         super.onPause()
     }
 
-    override fun onNewFrame(rgbBytes: ByteArray) {
-        // TODO: Pass to ML Interface
-    }
-
-    override fun onNewBitmap(bitmap: Bitmap) {
-        runOnUiThread {
-            input_surface.setImageBitmap(bitmap)
-        }
+    override fun onNewFrameProcessed(bitmap: Bitmap) {
+       runOnUiThread {
+           input_surface.setImageBitmap(bitmap)
+       }
     }
 
     private fun allPermissionsGranted(): Boolean {
