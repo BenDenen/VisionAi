@@ -109,28 +109,6 @@ public class MediaCodecWrapper {
     }
 
     /**
-     *
-     * @param outputFormatChangedListener the listener for callback.
-     * @param handler message handler for posting the callback.
-     */
-    public void setOutputFormatChangedListener(final OutputFormatChangedListener
-            outputFormatChangedListener, Handler handler) {
-        mOutputFormatChangedListener = outputFormatChangedListener;
-
-        // Making sure we don't block ourselves due to a bad implementation of the callback by
-        // using a handler provided by client.
-        mHandler = handler;
-        if (outputFormatChangedListener != null && mHandler == null) {
-            if (Looper.myLooper() != null) {
-                mHandler = new Handler();
-            } else {
-                throw new IllegalArgumentException(
-                        "Looper doesn't exist in the calling thread");
-            }
-        }
-    }
-
-    /**
      * Constructs the {@link MediaCodecWrapper} wrapper object around the video codec.
      * The codec is created using the encapsulated information in the
      * {@link MediaFormat} object.

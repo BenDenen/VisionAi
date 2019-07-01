@@ -13,12 +13,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-package com.bendenen.tfliteexample.ml
+package com.bendenen.tfliteexample.ml.tflite
 
 import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.RectF
 import android.os.Trace
+import com.bendenen.tfliteexample.ml.Classifier
 import com.bendenen.tfliteexample.utils.Logger
 import org.tensorflow.lite.Interpreter
 
@@ -203,7 +204,12 @@ class TFLiteObjectDetectionAPIModel private constructor() : Classifier {
             d.inputSize = inputSize
 
             try {
-                d.tfLite = Interpreter(loadModelFile(assetManager, modelFilename))
+                d.tfLite = Interpreter(
+                    loadModelFile(
+                        assetManager,
+                        modelFilename
+                    )
+                )
             } catch (e: Exception) {
                 throw RuntimeException(e)
             }

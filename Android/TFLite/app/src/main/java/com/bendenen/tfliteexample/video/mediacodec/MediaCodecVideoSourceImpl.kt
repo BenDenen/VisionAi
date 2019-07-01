@@ -16,7 +16,7 @@ import com.bendenen.tfliteexample.video.render.RenderActionsListener
 import com.bendenen.tfliteexample.video.render.rs.IntrinsicRenderScriptImageRender
 
 class MediaCodecVideoSourceImpl(
-    private val application: Application,
+    application: Application,
     private val requestedWidth: Int,
     private val requestedHeight: Int
 ) : VideoSource, RenderActionsListener {
@@ -29,30 +29,19 @@ class MediaCodecVideoSourceImpl(
 
     private var videoSourceListener: VideoSourceListener? = null
 
-    private var codecWrapper: MediaCodecWrapper? = null
+    private lateinit var codecWrapper: MediaCodecHandler
     private val extractor = MediaExtractor()
 
     private val timeAnimator = TimeAnimator()
 
     private var useBitmap = false
 
+    private var videoWidth = 0
+    private var videoHeight = 0
 
-    // Video Source Actions
-    override fun getSourceWidth(): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun getSourceHeight(): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun isAttached(): Boolean = videoSourceListener != null
-
-    override fun attach(videoSourceListener: VideoSourceListener) {
-
+    init {
         val assetFileDescriptor = application.assets.openFd("video_for_test.mp4")
 
-        // BEGIN_INCLUDE(initialize_extractor)
         extractor.setDataSource(
             assetFileDescriptor.fileDescriptor,
             assetFileDescriptor.startOffset,
@@ -83,8 +72,8 @@ class MediaCodecVideoSourceImpl(
             if (mimeType.contains("video/")) {
 
                 if (!::imageRender.isInitialized) {
-                    val videoWidth = trackFormat.getInteger(MediaFormat.KEY_WIDTH)
-                    val videoHeight = trackFormat.getInteger(MediaFormat.KEY_HEIGHT)
+                    videoWidth = trackFormat.getInteger(MediaFormat.KEY_WIDTH)
+                    videoHeight = trackFormat.getInteger(MediaFormat.KEY_HEIGHT)
 
                     Log.d(TAG, " videoWidth: $videoWidth  videoHeight: $videoHeight")
                     Log.d(TAG, " trackFormat: $trackFormat")
@@ -96,20 +85,30 @@ class MediaCodecVideoSourceImpl(
                     imageRender.renderActionsListener = this
                 }
 
-                codecWrapper = MediaCodecWrapper.fromVideoFormat(
+                codecWrapper = MediaCodecHandler(
                     trackFormat,
                     imageRender.getSurface()
                 )
-
-            }
-
-            if (codecWrapper != null) {
                 extractor.selectTrack(i)
                 break
             }
-        }
-        // END_INCLUDE(initialize_extractor)
 
+        }
+
+        if (!::codecWrapper.isInitialized) {
+            throw IllegalArgumentException()
+        }
+    }
+
+
+    // Video Source Actions
+    override fun getSourceWidth(): Int = videoWidth
+
+    override fun getSourceHeight(): Int = videoHeight
+
+    override fun isAttached(): Boolean = videoSourceListener != null
+
+    override fun attach(videoSourceListener: VideoSourceListener) {
 
         // By using a {@link TimeAnimator}, we can sync our media rendering commands with
         // the system display frame rendering. The animator ticks as the {@link Choreographer}
@@ -122,7 +121,7 @@ class MediaCodecVideoSourceImpl(
             if (!isEos) {
                 // Try to submit the sample to the codec and if successful advance the
                 // extractor to the next available sample to read.
-                val result = codecWrapper?.writeSample(
+                val result = codecWrapper.writeSample(
                     extractor, false,
                     extractor.sampleTime, extractor.sampleFlags
                 ) ?: false
@@ -138,16 +137,16 @@ class MediaCodecVideoSourceImpl(
             // Examine the sample at the head of the queue to see if its ready to be
             // rendered and is not zero sized End-of-Stream record.
             val out_bufferInfo = MediaCodec.BufferInfo()
-            codecWrapper?.peekSample(out_bufferInfo)
+            codecWrapper.peekSample(out_bufferInfo)
 
             // BEGIN_INCLUDE(render_sample)
             if (out_bufferInfo.size <= 0 && isEos) {
                 timeAnimator.end()
-                codecWrapper?.stopAndRelease()
+                codecWrapper.stopAndRelease()
                 extractor.release()
             } else if (out_bufferInfo.presentationTimeUs / 1000 < totalTime) {
                 // Pop the sample off the queue and send it to {@link Surface}
-                codecWrapper?.popSample(true)
+                codecWrapper.popSample(true)
             }
             // END_INCLUDE(render_sample)
         }
@@ -165,11 +164,12 @@ class MediaCodecVideoSourceImpl(
     override fun detach() {
         if (timeAnimator.isRunning) {
             timeAnimator.end()
+
+            codecWrapper.stopAndRelease()
+            extractor.release()
+            videoSourceListener = null
         }
 
-        codecWrapper?.stopAndRelease()
-        extractor.release()
-        videoSourceListener = null
     }
 
     override fun release() {
