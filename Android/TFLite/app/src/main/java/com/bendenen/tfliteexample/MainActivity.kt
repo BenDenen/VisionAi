@@ -1,16 +1,14 @@
 package com.bendenen.tfliteexample
 
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.bendenen.tfliteexample.ml.Classifier
-import com.bendenen.tfliteexample.video.VideoSource
-import com.bendenen.tfliteexample.video.VideoSourceListener
-import com.bendenen.tfliteexample.video.camera2.Camera2VideoSourceImpl
-import com.bendenen.tfliteexample.video.mediacodec.MediaCodecVideoSourceImpl
 import com.bendenen.tfliteexample.videoprocessor.VideoProcessor
 import com.bendenen.tfliteexample.videoprocessor.VideoProcessorListener
 import com.bendenen.tfliteexample.videoprocessor.tflite.TfLiteVideoProcessorImpl
@@ -25,41 +23,74 @@ class MainActivity : AppCompatActivity(), VideoProcessorListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        videoProcessor = TfLiteVideoProcessorImpl(
-            application,
-            FRAME_WIDTH,
-            FRAME_HEIGHT,
-            this)
-
         if (!allPermissionsGranted() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(getRequiredPermissions(), PERMISSIONS_REQUEST_CODE)
             return
         }
-    }
 
-    override fun onResume() {
-        super.onResume()
-        if (allPermissionsGranted()) {
-            videoProcessor.start()
+        record_video_button.setOnClickListener {
+            Intent(MediaStore.ACTION_VIDEO_CAPTURE).also { takeVideoIntent ->
+                takeVideoIntent.resolveActivity(packageManager)?.also {
+                    startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE)
+                }
+            }
+        }
+        select_video_button.setOnClickListener {
+            val galleryIntent = Intent(
+                Intent.ACTION_PICK,
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            )
+
+            startActivityForResult(galleryIntent, REQUEST_VIDEO_CAPTURE)
+
         }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+
+        if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
+            if (::videoProcessor.isInitialized) {
+                videoProcessor.stop()
+            }
+            data?.data?.let {
+                if (allPermissionsGranted()) {
+                    videoProcessor = TfLiteVideoProcessorImpl(
+                        application,
+                        FRAME_WIDTH,
+                        FRAME_HEIGHT,
+                        this,
+                        it
+                    )
+                    videoProcessor.start()
+                }
+            }
+
+            return
+        }
+
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+
     override fun onPause() {
-        if (allPermissionsGranted()) {
+        if (::videoProcessor.isInitialized) {
             videoProcessor.stop()
         }
         super.onPause()
     }
 
     override fun onNewFrameProcessed(bitmap: Bitmap) {
-       runOnUiThread {
-           input_surface.setImageBitmap(bitmap)
-       }
+        runOnUiThread {
+            input_surface.setImageBitmap(bitmap)
+        }
     }
 
     private fun allPermissionsGranted(): Boolean {
         for (permission in getRequiredPermissions()) {
-            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    permission
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
                 return false
             }
         }
@@ -82,6 +113,8 @@ class MainActivity : AppCompatActivity(), VideoProcessorListener {
 
     companion object {
         private const val PERMISSIONS_REQUEST_CODE = 1
+
+        private const val REQUEST_VIDEO_CAPTURE = 11
 
         // Work resolution
         private const val FRAME_WIDTH = 640

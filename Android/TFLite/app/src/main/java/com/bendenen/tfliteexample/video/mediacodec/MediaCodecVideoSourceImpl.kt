@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
+import android.net.Uri
 import android.renderscript.RenderScript
 import android.util.Log
 import android.util.Size
@@ -18,7 +19,8 @@ import com.bendenen.tfliteexample.video.render.rs.IntrinsicRenderScriptImageRend
 class MediaCodecVideoSourceImpl(
     application: Application,
     private val requestedWidth: Int,
-    private val requestedHeight: Int
+    private val requestedHeight: Int,
+    val uri: Uri
 ) : VideoSource, RenderActionsListener {
 
     companion object {
@@ -40,12 +42,9 @@ class MediaCodecVideoSourceImpl(
     private var videoHeight = 0
 
     init {
-        val assetFileDescriptor = application.assets.openFd("video_for_test.mp4")
 
         extractor.setDataSource(
-            assetFileDescriptor.fileDescriptor,
-            assetFileDescriptor.startOffset,
-            assetFileDescriptor.length
+            application, uri, null
         )
 
         val nTracks = extractor.trackCount
@@ -164,7 +163,6 @@ class MediaCodecVideoSourceImpl(
     override fun detach() {
         if (timeAnimator.isRunning) {
             timeAnimator.end()
-
             codecWrapper.stopAndRelease()
             extractor.release()
             videoSourceListener = null
