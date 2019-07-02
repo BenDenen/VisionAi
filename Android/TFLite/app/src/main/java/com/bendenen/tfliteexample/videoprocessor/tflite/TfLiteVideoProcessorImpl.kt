@@ -2,6 +2,7 @@ package com.bendenen.tfliteexample.videoprocessor.tflite
 
 import android.app.Application
 import android.graphics.*
+import android.net.Uri
 import android.os.SystemClock
 import android.util.Size
 import com.bendenen.tfliteexample.ml.Classifier
@@ -20,7 +21,8 @@ class TfLiteVideoProcessorImpl(
     private val application: Application,
     private val requestedWidth: Int,
     private val requestedHeight: Int,
-    override var videoProcessorListener: VideoProcessorListener?
+    override var videoProcessorListener: VideoProcessorListener?,
+    val videoUri: Uri
 ) : VideoProcessor, VideoSourceListener {
 
     private val detector: Classifier = TFLiteObjectDetectionAPIModel.create(
@@ -33,7 +35,8 @@ class TfLiteVideoProcessorImpl(
     private val videoSource: VideoSource = MediaCodecVideoSourceImpl(
         application,
         requestedWidth,
-        requestedHeight
+        requestedHeight,
+        videoUri
     )
     private var rgbFrameBitmap = Bitmap.createBitmap(
         videoSource.getSourceWidth(),
@@ -101,7 +104,7 @@ class TfLiteVideoProcessorImpl(
 
         var minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API
         when (MODE) {
-           DetectorMode.TF_OD_API -> minimumConfidence =
+            DetectorMode.TF_OD_API -> minimumConfidence =
                 MINIMUM_CONFIDENCE_TF_OD_API
         }
 
@@ -109,7 +112,7 @@ class TfLiteVideoProcessorImpl(
 
         for (result in results) {
             val location = result.getLocation()
-            if (location != null && result.confidence >= minimumConfidence) {
+            if (result.confidence >= minimumConfidence) {
 
 
                 cropToFrameTransform.mapRect(location)
@@ -140,7 +143,7 @@ class TfLiteVideoProcessorImpl(
         private const val TF_OD_API_LABELS_FILE = "file:///android_asset/labelmap.txt"
         private val MODE = DetectorMode.TF_OD_API
 
-        private val MINIMUM_CONFIDENCE_TF_OD_API = 0.3f
+        private val MINIMUM_CONFIDENCE_TF_OD_API = 0.5f
         private val MAINTAIN_ASPECT = false
         private val DESIRED_PREVIEW_SIZE = Size(640, 480)
         private val SAVE_PREVIEW_BITMAP = false
