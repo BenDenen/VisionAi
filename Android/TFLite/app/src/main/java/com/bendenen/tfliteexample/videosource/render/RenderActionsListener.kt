@@ -1,4 +1,4 @@
-package com.bendenen.tfliteexample.video.render
+package com.bendenen.tfliteexample.videosource.render
 
 import android.graphics.Bitmap
 

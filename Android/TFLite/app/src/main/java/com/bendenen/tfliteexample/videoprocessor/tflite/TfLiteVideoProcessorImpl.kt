@@ -3,18 +3,25 @@ package com.bendenen.tfliteexample.videoprocessor.tflite
 import android.app.Application
 import android.graphics.*
 import android.net.Uri
+import android.os.Environment
+import android.os.Environment.DIRECTORY_MOVIES
 import android.os.SystemClock
+import android.util.Log
 import android.util.Size
 import com.bendenen.tfliteexample.ml.Classifier
 import com.bendenen.tfliteexample.ml.tflite.TFLiteObjectDetectionAPIModel
 import com.bendenen.tfliteexample.utils.Logger
 import com.bendenen.tfliteexample.utils.getTransformationMatrix
 import com.bendenen.tfliteexample.utils.tracking.MultiBoxTracker
-import com.bendenen.tfliteexample.video.VideoSource
-import com.bendenen.tfliteexample.video.VideoSourceListener
-import com.bendenen.tfliteexample.video.mediacodec.MediaCodecVideoSourceImpl
+import com.bendenen.tfliteexample.videosource.VideoSource
+import com.bendenen.tfliteexample.videosource.VideoSourceListener
+import com.bendenen.tfliteexample.videosource.mediacodec.MediaCodecVideoSourceImpl
 import com.bendenen.tfliteexample.videoprocessor.VideoProcessor
 import com.bendenen.tfliteexample.videoprocessor.VideoProcessorListener
+import com.bendenen.tfliteexample.videoprocessor.outputencoder.OutputEncoder
+import com.bendenen.tfliteexample.videoprocessor.outputencoder.jcodec.JCodecOutputEncoderImpl
+import com.bendenen.tfliteexample.videosource.mediacodec.OutputBufferListener
+import java.io.File
 import java.util.*
 
 class TfLiteVideoProcessorImpl(
@@ -38,11 +45,6 @@ class TfLiteVideoProcessorImpl(
         requestedHeight,
         videoUri
     )
-    private var rgbFrameBitmap = Bitmap.createBitmap(
-        videoSource.getSourceWidth(),
-        videoSource.getSourceHeight(),
-        Bitmap.Config.ARGB_8888
-    );
     private var croppedBitmap = Bitmap.createBitmap(
         TF_OD_API_INPUT_SIZE,
         TF_OD_API_INPUT_SIZE,
@@ -59,6 +61,9 @@ class TfLiteVideoProcessorImpl(
     private var cropToFrameTransform = Matrix().also {
         frameToCropTransform.invert(it)
     }
+
+    private val outputEncoder: OutputEncoder = JCodecOutputEncoderImpl()
+
     private var tracker = MultiBoxTracker(application)
 
     private var timestamp: Long = 0
@@ -66,6 +71,7 @@ class TfLiteVideoProcessorImpl(
 
 
     override fun start() {
+        outputEncoder.initialize(File(Environment.getExternalStoragePublicDirectory(DIRECTORY_MOVIES),"temp.mp4"))
         videoSource.useBitmap(true)
         videoSource.attach(this)
     }
@@ -78,7 +84,11 @@ class TfLiteVideoProcessorImpl(
 
     }
 
+    var counter = 0
     override fun onNewBitmap(bitmap: Bitmap) {
+
+        Log.e("MyTag", "onNewBitmap " + counter++)
+//        videoProcessorListener?.onNewFrameProcessed(bitmap)
         ++timestamp
         val currTimestamp = timestamp
 
@@ -108,6 +118,7 @@ class TfLiteVideoProcessorImpl(
                 MINIMUM_CONFIDENCE_TF_OD_API
         }
 
+        // TODO: We will nedd map of mapped recognitions for postprocessing
         val mappedRecognitions = LinkedList<Classifier.Recognition>()
 
         for (result in results) {
@@ -124,7 +135,16 @@ class TfLiteVideoProcessorImpl(
             }
         }
 
-        videoProcessorListener?.onNewFrameProcessed(finalBitmap)
+        Log.e("MyTag", "send imGE")
+
+        outputEncoder.encodeBitmap(finalBitmap)
+
+//        videoProcessorListener?.onNewFrameProcessed(finalBitmap)
+    }
+
+    override fun onFinish() {
+        outputEncoder.finish()
+        Log.e("MyTag", File(Environment.getExternalStoragePublicDirectory(DIRECTORY_MOVIES),"temp.mp4").absolutePath)
     }
 
     // Which detection model to use: by default uses Tensorflow Object Detection API frozen

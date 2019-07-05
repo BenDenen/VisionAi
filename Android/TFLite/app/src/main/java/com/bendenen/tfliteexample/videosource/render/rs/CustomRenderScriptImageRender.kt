@@ -1,34 +1,26 @@
-package com.bendenen.tfliteexample.video.render.rs
+package com.bendenen.tfliteexample.videosource.render.rs
 
 import android.graphics.Bitmap
 import android.graphics.ImageFormat
 import android.renderscript.*
-import android.util.Log
 import android.util.Size
 import android.view.Surface
-import com.bendenen.tfliteexample.video.render.ImageRender
+import com.bendenen.tfliteexample.ScriptC_Yuv2Rgb
+import com.bendenen.tfliteexample.videosource.render.ImageRender
 
-internal class IntrinsicRenderScriptImageRender(
+class CustomRenderScriptImageRender(
     renderScript: RenderScript,
     private val previewSize: Size
 ) : ImageRender(), Allocation.OnBufferAvailableListener {
 
-    companion object{
-        const val TAG = "IntrinsicRenderScript"
-    }
-
     private val inputNormalAllocation: Allocation
 
     private val outputAllocation: Allocation
-    private val scriptC = ScriptIntrinsicYuvToRGB.create(renderScript, Element.RGBA_8888(renderScript))
+    private val scriptC = ScriptC_Yuv2Rgb(renderScript)
     private val rgbByteArray: ByteArray = ByteArray(previewSize.width * previewSize.height * 4)
     private lateinit var bitmap: Bitmap
 
     init {
-
-        Log.d(TAG, " previewSize ${previewSize.width}  previewSize ${previewSize.height}")
-
-
         val yuvTypeBuilder = Type.Builder(renderScript, Element.YUV(renderScript))
         yuvTypeBuilder.setX(previewSize.width)
         yuvTypeBuilder.setY(previewSize.height)
@@ -47,7 +39,12 @@ internal class IntrinsicRenderScriptImageRender(
             Allocation.USAGE_SCRIPT
         )
 
-        scriptC.setInput(inputNormalAllocation)
+
+        // Bind to script level -  set the allocation input and parameters from the java into the script level (thru JNI)
+        scriptC._gIn = inputNormalAllocation
+        scriptC._width = previewSize.width
+        scriptC._height = previewSize.height
+
         inputNormalAllocation.setOnBufferAvailableListener(this)
     }
 
@@ -61,7 +58,7 @@ internal class IntrinsicRenderScriptImageRender(
         inputNormalAllocation.ioReceive()
 
         // Run processing pass
-        scriptC.forEach(outputAllocation)
+        scriptC.forEach_yuvToRgb(outputAllocation)
 
         outputAllocation.copyTo(rgbByteArray)
         listener.onNewRGBBytes(rgbByteArray)
