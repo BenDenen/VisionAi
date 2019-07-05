@@ -1,4 +1,4 @@
-package com.bendenen.tfliteexample.video.mediacodec
+package com.bendenen.tfliteexample.videosource.mediacodec
 
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
@@ -12,7 +12,8 @@ import java.util.*
 
 class MediaCodecHandler(
     trackFormat: MediaFormat,
-    surface: Surface
+    surface: Surface,
+    val outputBufferListener: OutputBufferListener? = null
 ) {
 
     companion object {
@@ -174,7 +175,13 @@ class MediaCodecHandler(
                 decoder.queueInputBuffer(index, 0, size, presentationTimeUs, internalFlags)
             } else {
                 extractor.getSampleCryptoInfo(CRYPTO_INFO)
-                decoder.queueSecureInputBuffer(index, 0, CRYPTO_INFO, presentationTimeUs, internalFlags)
+                decoder.queueSecureInputBuffer(
+                    index,
+                    0,
+                    CRYPTO_INFO,
+                    presentationTimeUs,
+                    internalFlags
+                )
             }
 
             result = true
@@ -196,15 +203,15 @@ class MediaCodecHandler(
         var result = false
         if (!availableOutputBuffers.isEmpty()) {
             val index = availableOutputBuffers.peek()
-             outputBufferInfo[index]?.let {
-                 // metadata of the sample
-                 outBufferInfo.set(
-                     it.offset,
-                     it.size,
-                     it.presentationTimeUs,
-                     it.flags
-                 )
-             }
+            outputBufferInfo[index]?.let {
+                // metadata of the sample
+                outBufferInfo.set(
+                    it.offset,
+                    it.size,
+                    it.presentationTimeUs,
+                    it.flags
+                )
+            }
 
             result = true
         }
@@ -221,6 +228,7 @@ class MediaCodecHandler(
         // dequeue available buffers and synchronize our data structures with the codec.
         update()
         if (!availableOutputBuffers.isEmpty()) {
+            outputBufferListener?.onIsNotEmpty()
             val index = availableOutputBuffers.remove()
 
             // releases the buffer back to the codec
@@ -242,7 +250,9 @@ class MediaCodecHandler(
 
         // Get valid input buffers from the codec to fill later in the same order they were
         // made available by the codec.
-        while ({indexIn = decoder.dequeueInputBuffer(0);indexIn}() != MediaCodec.INFO_TRY_AGAIN_LATER) {
+        while ({
+                indexIn = decoder.dequeueInputBuffer(0);indexIn
+            }() != MediaCodec.INFO_TRY_AGAIN_LATER) {
             availableInputBuffers.add(indexIn)
         }
 
@@ -251,7 +261,9 @@ class MediaCodecHandler(
         // new set of output buffers. If the output format has changed, notify listeners.
         val info = MediaCodec.BufferInfo()
         var indexOut = 0
-        while ({indexOut = decoder.dequeueOutputBuffer(info, 0);indexOut}() != MediaCodec.INFO_TRY_AGAIN_LATER) {
+        while ({
+                indexOut = decoder.dequeueOutputBuffer(info, 0);indexOut
+            }() != MediaCodec.INFO_TRY_AGAIN_LATER) {
             when (indexOut) {
                 MediaCodec.INFO_OUTPUT_BUFFERS_CHANGED -> {
                     outputBuffers = decoder.getOutputBuffers()
@@ -285,5 +297,8 @@ class MediaCodecHandler(
         }
     }
 
+}
 
+interface OutputBufferListener {
+    fun onIsNotEmpty()
 }

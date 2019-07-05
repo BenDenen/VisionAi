@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package com.bendenen.tfliteexample.video.mediacodec;
+package com.bendenen.tfliteexample.videosource.mediacodec;
 
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.Surface;
 

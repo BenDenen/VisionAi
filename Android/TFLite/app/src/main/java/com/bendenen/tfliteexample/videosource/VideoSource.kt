@@ -1,4 +1,4 @@
-package com.bendenen.tfliteexample.video
+package com.bendenen.tfliteexample.videosource
 
 interface VideoSource {
 

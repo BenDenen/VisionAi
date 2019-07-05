@@ -1,4 +1,4 @@
-package com.bendenen.tfliteexample.video.camera2
+package com.bendenen.tfliteexample.videosource.camera2
 
 import android.annotation.SuppressLint
 import android.app.Application
@@ -10,11 +10,11 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.renderscript.RenderScript
 import android.util.Size
-import com.bendenen.tfliteexample.video.VideoSource
-import com.bendenen.tfliteexample.video.VideoSourceListener
-import com.bendenen.tfliteexample.video.render.ImageRender
-import com.bendenen.tfliteexample.video.render.RenderActionsListener
-import com.bendenen.tfliteexample.video.render.rs.IntrinsicRenderScriptImageRender
+import com.bendenen.tfliteexample.videosource.VideoSource
+import com.bendenen.tfliteexample.videosource.VideoSourceListener
+import com.bendenen.tfliteexample.videosource.render.ImageRender
+import com.bendenen.tfliteexample.videosource.render.RenderActionsListener
+import com.bendenen.tfliteexample.videosource.render.rs.IntrinsicRenderScriptImageRender
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
