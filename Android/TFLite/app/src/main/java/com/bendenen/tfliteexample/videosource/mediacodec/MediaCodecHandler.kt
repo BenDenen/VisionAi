@@ -18,7 +18,6 @@ class MediaCodecHandler(
 
     companion object {
         private const val TAG = "MediaCodecHandler"
-
         private val CRYPTO_INFO = MediaCodec.CryptoInfo()
     }
 
