@@ -20,6 +20,7 @@ import com.bendenen.tfliteexample.videoprocessor.VideoProcessor
 import com.bendenen.tfliteexample.videoprocessor.VideoProcessorListener
 import com.bendenen.tfliteexample.videoprocessor.outputencoder.OutputEncoder
 import com.bendenen.tfliteexample.videoprocessor.outputencoder.jcodec.JCodecOutputEncoderImpl
+import com.bendenen.tfliteexample.videoprocessor.outputencoder.mediamuxer.MediaMuxerOutputEncoderImpl
 import com.bendenen.tfliteexample.videosource.mediacodec.OutputBufferListener
 import java.io.File
 import java.util.*
@@ -62,7 +63,7 @@ class TfLiteVideoProcessorImpl(
         frameToCropTransform.invert(it)
     }
 
-    private val outputEncoder: OutputEncoder = JCodecOutputEncoderImpl()
+    private val outputEncoder: OutputEncoder = MediaMuxerOutputEncoderImpl()
 
     private var tracker = MultiBoxTracker(application)
 
@@ -110,7 +111,7 @@ class TfLiteVideoProcessorImpl(
         val paint = Paint()
         paint.color = Color.RED
         paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 2.0f
+        paint.strokeWidth = 10.0f
 
         var minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API
         when (MODE) {
