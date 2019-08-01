@@ -11,7 +11,10 @@ import android.util.Log
 import com.bendenen.tfliteexample.videoprocessor.outputencoder.OutputEncoder
 import java.io.File
 
-class MediaMuxerOutputEncoderImpl : OutputEncoder {
+class MediaMuxerOutputEncoderImpl(
+    val outputVideoWidth: Int,
+    val outputVideoHeight: Int
+) : OutputEncoder {
 
     private var currentState = OutputEncoder.EncoderState.NOT_INITIALIZED
 
@@ -26,7 +29,8 @@ class MediaMuxerOutputEncoderImpl : OutputEncoder {
     private var addedFrameCount: Int = 0
 
     override fun initialize(outputFile: File) {
-        val videoFormat = MediaFormat.createVideoFormat(MIMETYPE_VIDEO_AVC, 3840, 2160)
+        val videoFormat =
+            MediaFormat.createVideoFormat(MIMETYPE_VIDEO_AVC, outputVideoWidth, outputVideoHeight)
         videoFormat.setInteger(KEY_BIT_RATE, BIT_RATE)
         videoFormat.setInteger(KEY_FRAME_RATE, FRAME_RATE)
         videoFormat.setInteger(KEY_I_FRAME_INTERVAL, I_FRAME_INTERVAL)
