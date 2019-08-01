@@ -13,15 +13,13 @@ import com.bendenen.tfliteexample.ml.tflite.TFLiteObjectDetectionAPIModel
 import com.bendenen.tfliteexample.utils.Logger
 import com.bendenen.tfliteexample.utils.getTransformationMatrix
 import com.bendenen.tfliteexample.utils.tracking.MultiBoxTracker
-import com.bendenen.tfliteexample.videosource.VideoSource
-import com.bendenen.tfliteexample.videosource.VideoSourceListener
-import com.bendenen.tfliteexample.videosource.mediacodec.MediaCodecVideoSourceImpl
 import com.bendenen.tfliteexample.videoprocessor.VideoProcessor
 import com.bendenen.tfliteexample.videoprocessor.VideoProcessorListener
 import com.bendenen.tfliteexample.videoprocessor.outputencoder.OutputEncoder
-import com.bendenen.tfliteexample.videoprocessor.outputencoder.jcodec.JCodecOutputEncoderImpl
 import com.bendenen.tfliteexample.videoprocessor.outputencoder.mediamuxer.MediaMuxerOutputEncoderImpl
-import com.bendenen.tfliteexample.videosource.mediacodec.OutputBufferListener
+import com.bendenen.tfliteexample.videosource.VideoSource
+import com.bendenen.tfliteexample.videosource.VideoSourceListener
+import com.bendenen.tfliteexample.videosource.mediacodec.MediaCodecVideoSourceImpl
 import java.io.File
 import java.util.*
 
@@ -63,7 +61,10 @@ class TfLiteVideoProcessorImpl(
         frameToCropTransform.invert(it)
     }
 
-    private val outputEncoder: OutputEncoder = MediaMuxerOutputEncoderImpl()
+    private val outputEncoder: OutputEncoder = MediaMuxerOutputEncoderImpl(
+        videoSource.getSourceWidth(),
+        videoSource.getSourceHeight()
+    )
 
     private var tracker = MultiBoxTracker(application)
 
@@ -72,7 +73,12 @@ class TfLiteVideoProcessorImpl(
 
 
     override fun start() {
-        outputEncoder.initialize(File(Environment.getExternalStoragePublicDirectory(DIRECTORY_MOVIES),"temp.mp4"))
+        outputEncoder.initialize(
+            File(
+                Environment.getExternalStoragePublicDirectory(DIRECTORY_MOVIES),
+                "temp.mp4"
+            )
+        )
         videoSource.useBitmap(true)
         videoSource.attach(this)
     }
@@ -88,8 +94,6 @@ class TfLiteVideoProcessorImpl(
     var counter = 0
     override fun onNewBitmap(bitmap: Bitmap) {
 
-        Log.e("MyTag", "onNewBitmap " + counter++)
-//        videoProcessorListener?.onNewFrameProcessed(bitmap)
         ++timestamp
         val currTimestamp = timestamp
 
@@ -137,6 +141,7 @@ class TfLiteVideoProcessorImpl(
         }
 
         Log.e("MyTag", "send imGE")
+        videoProcessorListener?.onNewFrameProcessed(finalBitmap)
 
         outputEncoder.encodeBitmap(finalBitmap)
 
@@ -145,7 +150,13 @@ class TfLiteVideoProcessorImpl(
 
     override fun onFinish() {
         outputEncoder.finish()
-        Log.e("MyTag", File(Environment.getExternalStoragePublicDirectory(DIRECTORY_MOVIES),"temp.mp4").absolutePath)
+        Log.e(
+            "MyTag",
+            File(
+                Environment.getExternalStoragePublicDirectory(DIRECTORY_MOVIES),
+                "temp.mp4"
+            ).absolutePath
+        )
     }
 
     // Which detection model to use: by default uses Tensorflow Object Detection API frozen
