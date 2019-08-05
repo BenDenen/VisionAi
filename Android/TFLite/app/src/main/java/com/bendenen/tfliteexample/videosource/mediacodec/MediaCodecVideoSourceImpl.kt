@@ -121,57 +121,6 @@ class MediaCodecVideoSourceImpl(
 
         executorHandler.post { startDataRetrieving() }
 
-
-        // By using a {@link TimeAnimator}, we can sync our media rendering commands with
-        // the system display frame rendering. The animator ticks as the {@link Choreographer}
-        // receives VSYNC events.
-//        var counter = 0
-//        timeAnimator.setTimeListener { animation, totalTime, deltaTime ->
-//
-//            val isEos = extractor.sampleFlags and MediaCodec
-//                .BUFFER_FLAG_END_OF_STREAM == MediaCodec.BUFFER_FLAG_END_OF_STREAM
-//
-//            // BEGIN_INCLUDE(write_sample)
-//            if (!isEos) {
-//                // Try to submit the sample to the codec and if successful advance the
-//                // extractor to the next available sample to read.
-//                val result = codecWrapper.writeSample(
-//                    extractor, false,
-//                    extractor.sampleTime, extractor.sampleFlags
-//                ) ?: false
-//
-//                if (result) {
-//                    // Advancing the extractor is a blocking operation and it MUST be
-//                    // executed outside the main thread in real applications.
-//                    Log.e("MyTag", "advance " + counter++)
-//                    extractor.advance()
-//                }
-//            }
-//            // END_INCLUDE(write_sample)
-//
-//            // Examine the sample at the head of the queue to see if its ready to be
-//            // rendered and is not zero sized End-of-Stream record.
-//            val out_bufferInfo = MediaCodec.BufferInfo()
-//            codecWrapper.peekSample(out_bufferInfo)
-//
-//            // BEGIN_INCLUDE(render_sample)
-//            if (out_bufferInfo.size <= 0 && isEos) {
-//                timeAnimator.end()
-//                codecWrapper.stopAndRelease()
-//                extractor.release()
-////                this.videoSourceListener?.onFinish()
-//            } else if (out_bufferInfo.presentationTimeUs / 1000 < totalTime)  {
-//                // Pop the sample off the queue and send it to {@link Surface}
-//
-//                codecWrapper.popSample(true)
-//            }
-//            // END_INCLUDE(render_sample)
-//        }
-//
-////        // We're all set. Kick off the animator to process buffers and render video frames as
-////        // they become available
-////        this.videoSourceListener = videoSourceListener
-//        timeAnimator.start()
     }
 
     override fun useBitmap(useBitmap: Boolean) {
