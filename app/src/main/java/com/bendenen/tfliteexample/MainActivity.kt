@@ -6,18 +6,16 @@ import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.bendenen.tfliteexample.videoprocessor.VideoProcessor
-import com.bendenen.tfliteexample.videoprocessor.VideoProcessorListener
-import com.bendenen.tfliteexample.videoprocessor.tflite.TfLiteVideoProcessorImpl
+import com.bendenen.visionai.videoprocessor.VideoProcessor
+import com.bendenen.visionai.videoprocessor.VideoProcessorListener
+import com.bendenen.visionai.videoprocessor.tflite.TfLiteVideoProcessorImpl
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), VideoProcessorListener {
 
     private lateinit var videoProcessor: VideoProcessor
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +40,6 @@ class MainActivity : AppCompatActivity(), VideoProcessorListener {
             )
 
             startActivityForResult(galleryIntent, REQUEST_VIDEO_CAPTURE)
-
         }
     }
 

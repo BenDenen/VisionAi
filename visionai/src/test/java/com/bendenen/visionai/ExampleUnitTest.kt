@@ -1,4 +1,4 @@
-package com.bendenen.tfliteexample
+package com.bendenen.visionai
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

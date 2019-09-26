@@ -1,0 +1,54 @@
+repositories {
+    jcenter()
+}
+
+configurations {
+    ktlint
+}
+
+dependencies {
+    ktlint "com.github.shyiko:ktlint:0.30.0"
+}
+
+task ktlint(type: JavaExec, group: "verification") {
+    description = "Check Kotlin code style."
+    classpath = configurations.ktlint
+    main = "com.github.shyiko.ktlint.Main"
+    args = [
+            "app/src/**/*.kt",
+            "visionai/src/**/*.kt",
+            "--reporter=plain",
+            "--reporter=checkstyle,output=${buildDir}/reports/ktlint.xml"
+    ]
+}
+
+task ktlintFormat(type: JavaExec, group: "formatting") {
+    description = "Fix Kotlin code style violations."
+    classpath = configurations.ktlint
+    main = "com.github.shyiko.ktlint.Main"
+    args = [
+            "-F",
+            "app/src/**/*.kt",
+            "visionai/src/**/*.kt"]
+}
+
+task ktlintApplyToIdeaProject(type: JavaExec, group: "formatting") {
+    description = "Update Intellij IDEA project settings."
+    classpath = configurations.ktlint
+    main = "com.github.shyiko.ktlint.Main"
+    args = ["--apply-to-idea-project", "--android", "-y"]
+}
+
+task ktlintInstallPreCommitHook(type: JavaExec, group: "formatting") {
+    description = "Install Git hook to automatically check files for style violations on commit."
+    classpath = configurations.ktlint
+    main = "com.github.shyiko.ktlint.Main"
+    args = ["--install-git-pre-commit-hook"]
+}
+
+task ktlintInstallPrePushHook(type: JavaExec, group: "formatting") {
+    description = "Install Git hook to automatically check files for style violations on push."
+    classpath = configurations.ktlint
+    main = "com.github.shyiko.ktlint.Main"
+    args = ["--install-git-pre-push-hook"]
+}
