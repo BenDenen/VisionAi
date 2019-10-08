@@ -23,7 +23,6 @@ import java.nio.channels.FileChannel
 import java.util.PriorityQueue
 import java.util.AbstractMap
 
-
 abstract class ImageClassifier
 /** Initializes an `ImageClassifier`.  */
 @Throws(IOException::class)
