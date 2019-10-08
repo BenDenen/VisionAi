@@ -14,6 +14,7 @@ import android.media.MediaFormat.KEY_I_FRAME_INTERVAL
 import android.media.MediaFormat.MIMETYPE_VIDEO_AVC
 import android.media.MediaMuxer
 import android.util.Log
+import androidx.annotation.WorkerThread
 import com.bendenen.visionai.videoprocessor.outputencoder.OutputEncoder
 import java.io.File
 
@@ -52,6 +53,7 @@ class MediaMuxerOutputEncoderImpl(
 
     override fun getEncoderState(): OutputEncoder.EncoderState = currentState
 
+    @WorkerThread
     override fun encodeBitmap(bitmap: Bitmap) {
         if (currentState == OutputEncoder.EncoderState.FINISHED) {
             Log.d(TAG, "already finished. can't add Frame ")

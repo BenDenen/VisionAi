@@ -56,7 +56,6 @@ internal class IntrinsicRenderScriptImageRender(
     override fun getSurface(): Surface = inputNormalAllocation.surface
 
     override fun onBufferAvailable(a: Allocation) {
-        Log.e("MyTag", "onBufferAvailable")
 
         val listener = renderActionsListener ?: return
 

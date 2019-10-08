@@ -1,6 +1,8 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.0"
@@ -30,17 +32,16 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
-    implementation'org.jcodec:jcodec:0.2.3'
-    implementation 'org.jcodec:jcodec-android:0.2.3'
+    implementation "org.jcodec:jcodec:$jcodec_version"
+    implementation "org.jcodec:jcodec-android:$jcodec_android_version"
 
-    implementation 'org.tensorflow:tensorflow-lite:1.13.1'
+    implementation "org.tensorflow:tensorflow-lite:$tf_lite_version"
 
-    implementation 'androidx.appcompat:appcompat:1.1.0'
-    implementation 'androidx.core:core-ktx:1.1.0'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlin_coroutines_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlin_coroutines_version"
 
+    implementation "androidx.appcompat:appcompat:$androidx_appcompat_version"
+    implementation "androidx.core:core-ktx:$androidx_core_ktx_version"
 
-    testImplementation 'junit:junit:4.12'
-
-    androidTestImplementation 'androidx.test:runner:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+    testImplementation "junit:junit:$junit4_version"
 }

@@ -2,7 +2,6 @@ package com.bendenen.visionai.videoprocessor.outputencoder.jcodec
 
 import android.graphics.Bitmap
 import android.util.Log
-import androidx.annotation.WorkerThread
 import com.bendenen.visionai.videoprocessor.outputencoder.OutputEncoder
 import org.jcodec.api.android.AndroidSequenceEncoder
 import org.jcodec.common.io.FileChannelWrapper
@@ -44,7 +43,6 @@ class JCodecOutputEncoderImpl : OutputEncoder {
         currentState = OutputEncoder.EncoderState.INITIALIZED
     }
 
-    @WorkerThread
     override fun encodeBitmap(bitmap: Bitmap) {
         try {
             if (currentState != OutputEncoder.EncoderState.ENCODING) {

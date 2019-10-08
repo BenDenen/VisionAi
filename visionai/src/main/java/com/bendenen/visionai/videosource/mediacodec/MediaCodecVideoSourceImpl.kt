@@ -7,8 +7,6 @@ import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.net.Uri
-import android.os.Handler
-import android.os.HandlerThread
 import android.renderscript.RenderScript
 import android.util.Log
 import android.util.Size
@@ -17,13 +15,19 @@ import com.bendenen.visionai.videosource.VideoSourceListener
 import com.bendenen.visionai.videosource.render.ImageRender
 import com.bendenen.visionai.videosource.render.RenderActionsListener
 import com.bendenen.visionai.videosource.render.rs.IntrinsicRenderScriptImageRender
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
 
 class MediaCodecVideoSourceImpl(
     application: Application,
     private val requestedWidth: Int,
     private val requestedHeight: Int,
     val uri: Uri
-) : VideoSource, RenderActionsListener, OutputBufferListener {
+) : VideoSource, RenderActionsListener, OutputBufferListener, CoroutineScope {
 
     companion object {
         const val TAG = "MediaCodecSource"
@@ -45,8 +49,10 @@ class MediaCodecVideoSourceImpl(
 
     private var isFrameRendering = false
 
-    private val handlerThread = HandlerThread("HandlerThread").also { it.start() }
-    private val executorHandler = Handler(handlerThread.looper)
+    private val job = Job()
+
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
 
     init {
 
@@ -116,7 +122,9 @@ class MediaCodecVideoSourceImpl(
 
         this.videoSourceListener = videoSourceListener
 
-        executorHandler.post { startDataRetrieving() }
+        launch {
+            startDataRetrieving()
+        }
     }
 
     override fun useBitmap(useBitmap: Boolean) {
@@ -133,7 +141,7 @@ class MediaCodecVideoSourceImpl(
     }
 
     override fun release() {
-        executorHandler.removeCallbacksAndMessages(null)
+        job.cancel()
         imageRender.release()
     }
 
@@ -155,38 +163,39 @@ class MediaCodecVideoSourceImpl(
         isFrameRendering = true
     }
 
-    private fun startDataRetrieving() {
-        val out_bufferInfo = MediaCodec.BufferInfo()
-        var counter = 0
+    private suspend fun startDataRetrieving() =
+        withContext(Dispatchers.IO) {
+            val outBuffering = MediaCodec.BufferInfo()
+            var counter = 0
 
-        while (extractor.sampleFlags and MediaCodec
-                .BUFFER_FLAG_END_OF_STREAM != MediaCodec.BUFFER_FLAG_END_OF_STREAM
-        ) {
-            if (isFrameRendering) {
-                continue
+            while (extractor.sampleFlags and MediaCodec
+                    .BUFFER_FLAG_END_OF_STREAM != MediaCodec.BUFFER_FLAG_END_OF_STREAM
+            ) {
+                if (isFrameRendering) {
+                    continue
+                }
+
+                // Try to submit the sample to the codec and if successful advance the
+                // extractor to the next available sample to read.
+                val result = codecWrapper.writeSample(
+                    extractor, false,
+                    extractor.sampleTime, extractor.sampleFlags
+                )
+
+                if (result) {
+                    // Advancing the extractor is a blocking operation and it MUST be
+                    // executed outside the main thread in real applications.
+                    val isDone = extractor.advance()
+                    Log.e("MyTag", "advance $isDone" + counter++)
+
+                    codecWrapper.popSample(true)
+                }
+
+                codecWrapper.peekSample(outBuffering)
+                // END_INCLUDE(render_sample)
             }
-
-            // Try to submit the sample to the codec and if successful advance the
-            // extractor to the next available sample to read.
-            val result = codecWrapper.writeSample(
-                extractor, false,
-                extractor.sampleTime, extractor.sampleFlags
-            )
-
-            if (result) {
-                // Advancing the extractor is a blocking operation and it MUST be
-                // executed outside the main thread in real applications.
-                val isDone = extractor.advance()
-                Log.e("MyTag", "advance $isDone" + counter++)
-
-                codecWrapper.popSample(true)
-            }
-
-            codecWrapper.peekSample(out_bufferInfo)
-            // END_INCLUDE(render_sample)
+            codecWrapper.stopAndRelease()
+            extractor.release()
+            videoSourceListener?.onFinish()
         }
-        codecWrapper.stopAndRelease()
-        extractor.release()
-        this.videoSourceListener?.onFinish()
-    }
 }
