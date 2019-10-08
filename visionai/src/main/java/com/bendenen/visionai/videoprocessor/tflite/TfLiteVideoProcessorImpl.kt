@@ -13,7 +13,7 @@ import android.os.SystemClock
 import android.util.Log
 import android.util.Size
 import com.bendenen.visionai.ml.Classifier
-import com.bendenen.visionai.ml.tflite.TFLiteObjectDetectionAPIModel
+import com.bendenen.visionai.ml.tflite.TFLiteObjectDetection
 import com.bendenen.visionai.utils.Logger
 import com.bendenen.visionai.utils.getTransformationMatrix
 import com.bendenen.visionai.utils.tracking.MultiBoxTracker
@@ -35,7 +35,7 @@ class TfLiteVideoProcessorImpl(
     val videoUri: Uri
 ) : VideoProcessor, VideoSourceListener {
 
-    private val detector: Classifier = TFLiteObjectDetectionAPIModel.create(
+    private val detector: Classifier = TFLiteObjectDetection.create(
         application.assets,
         TF_OD_API_MODEL_FILE,
         TF_OD_API_LABELS_FILE,
@@ -91,6 +91,7 @@ class TfLiteVideoProcessorImpl(
     }
 
     override fun onNewFrame(rgbBytes: ByteArray) {
+        // TODO:
     }
 
     var counter = 0
