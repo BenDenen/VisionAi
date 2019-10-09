@@ -24,8 +24,9 @@ internal class IntrinsicRenderScriptImageRender(
     private val inputNormalAllocation: Allocation
 
     private val outputAllocation: Allocation
-    private val scriptC = ScriptIntrinsicYuvToRGB.create(renderScript, Element.RGBA_8888(renderScript))
-    private val rgbByteArray: ByteArray = ByteArray(previewSize.width * previewSize.height * 4)
+    private val scriptC =
+        ScriptIntrinsicYuvToRGB.create(renderScript, Element.RGBA_8888(renderScript))
+    private val rgbByteArray = ByteArray(previewSize.width * previewSize.height * 4)
     private lateinit var bitmap: Bitmap
 
     init {
@@ -66,15 +67,22 @@ internal class IntrinsicRenderScriptImageRender(
         scriptC.forEach(outputAllocation)
 
         outputAllocation.copyTo(rgbByteArray)
-        listener.onNewRGBBytes(rgbByteArray)
+//        listener.onNewRGBBytes(rgbByteArray)
 
         if (listener.useBitmap()) {
             if (!::bitmap.isInitialized) {
-                bitmap = Bitmap.createBitmap(previewSize.width, previewSize.height, Bitmap.Config.ARGB_8888)
+                bitmap = Bitmap.createBitmap(
+                    previewSize.width,
+                    previewSize.height,
+                    Bitmap.Config.ARGB_8888
+                )
             }
             outputAllocation.copyTo(bitmap)
-            listener.onNewBitmap(bitmap)
+//            listener.onNewBitmap(bitmap)
         }
+
+        // For debug
+        listener.onNewData(rgbByteArray, bitmap)
     }
 
     override fun release() {

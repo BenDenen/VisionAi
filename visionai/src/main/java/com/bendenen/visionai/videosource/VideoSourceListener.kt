@@ -8,5 +8,8 @@ interface VideoSourceListener {
 
     fun onNewBitmap(bitmap: Bitmap)
 
+    // For debug
+    fun onNewData(rgbBytes: ByteArray, bitmap: Bitmap){}
+
     fun onFinish()
 }

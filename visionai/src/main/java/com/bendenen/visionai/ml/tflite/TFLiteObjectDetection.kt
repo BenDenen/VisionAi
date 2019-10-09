@@ -38,6 +38,62 @@ class TFLiteObjectDetection private constructor() :
     override val statString: String
         get() = ""
 
+    override fun recognizeImageBytes(bytes: ByteArray): List<Classifier.Recognition> {
+
+        Trace.beginSection("recognizeImage")
+
+        Trace.beginSection("preprocessBitmap")
+
+
+        Trace.endSection() // preprocessBitmap
+
+        // Copy the input data into TensorFlow.
+        Trace.beginSection("feed")
+        outputLocations = Array(1) { Array(NUM_DETECTIONS) { FloatArray(4) } }
+        outputClasses = Array(1) { FloatArray(NUM_DETECTIONS) }
+        outputScores = Array(1) { FloatArray(NUM_DETECTIONS) }
+        numDetections = FloatArray(1)
+
+        val inputArray = arrayOf<Any>(bytes)
+        val outputMap = HashMap<Int, Any>()
+        outputMap[0] = outputLocations!!
+        outputMap[1] = outputClasses!!
+        outputMap[2] = outputScores!!
+        outputMap[3] = numDetections!!
+        Trace.endSection()
+
+        // Run the inference call.
+        Trace.beginSection("run")
+        tfLite!!.runForMultipleInputsOutputs(inputArray, outputMap)
+        Trace.endSection()
+
+        // Show the best detections.
+        // after scaling them back to the input size.
+        val recognitions = ArrayList<Classifier.Recognition>(NUM_DETECTIONS)
+        for (i in 0 until NUM_DETECTIONS) {
+            val detection = RectF(
+                outputLocations!![0][i][1] * inputSize,
+                outputLocations!![0][i][0] * inputSize,
+                outputLocations!![0][i][3] * inputSize,
+                outputLocations!![0][i][2] * inputSize
+            )
+            // SSD Mobilenet V1 Model assumes class 0 is background class
+            // in label file and class labels start from 1 to number_of_classes+1,
+            // while outputClasses correspond to class index from 0 to number_of_classes
+            val labelOffset = 1
+            recognitions.add(
+                Classifier.Recognition(
+                    "" + i,
+                    labels[outputClasses!![0][i].toInt() + labelOffset],
+                    outputScores!![0][i],
+                    detection
+                )
+            )
+        }
+        Trace.endSection() // "recognizeImage"
+        return recognitions
+    }
+
     override fun recognizeImage(bitmap: Bitmap): List<Classifier.Recognition> {
         // Log this method so that it can be analyzed with systrace.
         Trace.beginSection("recognizeImage")
