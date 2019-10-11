@@ -4,6 +4,7 @@ import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.RectF
 import android.os.Trace
+import android.util.Log
 import com.bendenen.visionai.ml.Classifier
 import com.bendenen.visionai.utils.Logger
 import org.tensorflow.lite.Interpreter
@@ -54,7 +55,9 @@ class TFLiteObjectDetection private constructor() :
         outputScores = Array(1) { FloatArray(NUM_DETECTIONS) }
         numDetections = FloatArray(1)
 
-        val inputArray = arrayOf<Any>(bytes)
+        imgData!!.rewind()
+        imgData!!.put(bytes)
+        val inputArray = arrayOf<Any>(imgData!!)
         val outputMap = HashMap<Int, Any>()
         outputMap[0] = outputLocations!!
         outputMap[1] = outputClasses!!

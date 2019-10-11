@@ -15,6 +15,7 @@ import android.util.Size
 import com.bendenen.visionai.ml.Classifier
 import com.bendenen.visionai.ml.tflite.TFLiteObjectDetection
 import com.bendenen.visionai.utils.Logger
+import com.bendenen.visionai.utils.NativeImageUtilsWrapper
 import com.bendenen.visionai.utils.getTransformationMatrix
 import com.bendenen.visionai.utils.tracking.MultiBoxTracker
 import com.bendenen.visionai.videoprocessor.VideoProcessor
@@ -75,6 +76,8 @@ class TfLiteVideoProcessorImpl(
     private var timestamp: Long = 0
     private var lastProcessingTimeMs: Long = 0
 
+    private val inputByteArrayBuffer = ByteArray(TF_OD_API_INPUT_SIZE * TF_OD_API_INPUT_SIZE * 3)
+
     override fun start() {
         outputEncoder.initialize(
             File(
@@ -91,17 +94,27 @@ class TfLiteVideoProcessorImpl(
     }
 
     override fun onNewData(rgbBytes: ByteArray, bitmap: Bitmap) {
+
+        NativeImageUtilsWrapper.resizeImage(
+            rgbBytes,
+            bitmap.width,
+            bitmap.height,
+            TF_OD_API_INPUT_SIZE,
+            TF_OD_API_INPUT_SIZE,
+            inputByteArrayBuffer
+        )
+
         ++timestamp
         val currTimestamp = timestamp
 
         LOGGER.i("Preparing image $currTimestamp for detection in bg thread.")
-        val canvas = Canvas(croppedBitmap)
-        canvas.drawBitmap(bitmap, frameToCropTransform, null)
+//        val canvas = Canvas(croppedBitmap)
+//        canvas.drawBitmap(bitmap, frameToCropTransform, null)
 
         LOGGER.i("Running detection on image $currTimestamp")
         val startTime = SystemClock.uptimeMillis()
 
-        val results = detector.recognizeImage(croppedBitmap)
+        val results = detector.recognizeImageBytes(inputByteArrayBuffer)
 
         lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime
 
