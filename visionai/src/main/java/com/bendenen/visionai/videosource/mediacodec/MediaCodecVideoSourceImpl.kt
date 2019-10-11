@@ -146,14 +146,21 @@ class MediaCodecVideoSourceImpl(
     }
 
     // Render actions
+
+    // For debug
+    override fun onNewData(rgbBytes: ByteArray, bitmap: Bitmap) {
+        videoSourceListener?.onNewData(rgbBytes,bitmap)
+        isFrameRendering = false
+    }
+
     override fun onNewRGBBytes(byteArray: ByteArray) {
         // TODO: Change to use flag
         videoSourceListener?.onNewFrame(byteArray)
     }
 
     override fun onNewBitmap(bitmap: Bitmap) {
-        videoSourceListener?.onNewBitmap(bitmap)
-        isFrameRendering = false
+//        videoSourceListener?.onNewBitmap(bitmap)
+//        isFrameRendering = false
     }
 
     override fun useBitmap(): Boolean = useBitmap

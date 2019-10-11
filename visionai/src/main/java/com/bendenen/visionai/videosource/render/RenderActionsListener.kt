@@ -8,5 +8,8 @@ interface RenderActionsListener {
 
     fun onNewRGBBytes(byteArray: ByteArray)
 
+    // For Debug
+    fun onNewData(rgbBytes: ByteArray, bitmap: Bitmap){}
+
     fun useBitmap(): Boolean
 }

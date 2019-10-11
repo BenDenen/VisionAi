@@ -11,6 +11,9 @@ interface Classifier {
     @WorkerThread
     fun recognizeImage(bitmap: Bitmap): List<Recognition>
 
+    @WorkerThread
+    fun recognizeImageBytes(bytes: ByteArray): List<Recognition>
+
     fun enableStatLogging(debug: Boolean)
 
     fun close()
