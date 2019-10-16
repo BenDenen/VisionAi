@@ -1,4 +1,4 @@
-package com.bendenen.visionai.ml.tflite
+package com.bendenen.visionai.ml.objectdetection.tflite
 
 import android.app.Activity
 import android.graphics.Bitmap
@@ -109,14 +109,14 @@ internal constructor(activity: Activity) {
         )
         imgData!!.order(ByteOrder.nativeOrder())
         filterLabelProbArray = Array(FILTER_STAGES) { FloatArray(numLabels) }
-        Log.d(TAG, "Created a Tensorflow Lite Image Classifier.")
+        Log.d(TAG, "Created a Tensorflow Lite Image ObjectDetector.")
     }
 
     /** Classifies a frame from the preview stream.  */
     internal fun classifyFrame(bitmap: Bitmap, builder: SpannableStringBuilder) {
         if (tflite == null) {
             Log.e(TAG, "Image classifier has not been initialized; Skipped.")
-            builder.append(SpannableString("Uninitialized Classifier."))
+            builder.append(SpannableString("Uninitialized ObjectDetector."))
         }
         convertBitmapToByteBuffer(bitmap)
         // Here's where the magic happens!!!
@@ -251,7 +251,8 @@ internal constructor(activity: Activity) {
             if (label.value > GOOD_PROB_THRESHOLD) {
                 color = Color.WHITE
             } else {
-                color = SMALL_COLOR
+                color =
+                    SMALL_COLOR
             }
             // Make first item bigger.
             if (i == size - 1) {

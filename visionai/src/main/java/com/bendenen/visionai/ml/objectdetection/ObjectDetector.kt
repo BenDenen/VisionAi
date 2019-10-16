@@ -1,10 +1,10 @@
-package com.bendenen.visionai.ml
+package com.bendenen.visionai.ml.objectdetection
 
 import android.graphics.Bitmap
 import android.graphics.RectF
 import androidx.annotation.WorkerThread
 
-interface Classifier {
+interface ObjectDetector {
 
     val statString: String
 

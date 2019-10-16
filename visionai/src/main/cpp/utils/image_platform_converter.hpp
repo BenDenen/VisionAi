@@ -241,6 +241,21 @@ namespace vsa {
 
         template<vsa::ImageFormat Format>
         void
+        ResizeImage(vsa::ImagePtr const &image, float *result, vsa::Point2U newSize,
+                    std::vector<uint32_t> const &offsets) {
+            uint32_t const bytesPerSlice = newSize.x * newSize.y;
+            assert(offsets.size() == bytesPerSlice);
+
+            uint32_t const channelsNum = detail::ChannelsNum<Format>::Value;
+
+            assert((image->GetChannelsNum() == channelsNum) ||
+                   (image->GetChannelsNum() == 4 && channelsNum == 3));
+
+            detail::CopyPixels<detail::ChannelsNum<Format>::Value>(image, result, offsets);
+        }
+
+        template<vsa::ImageFormat Format>
+        void
         ResizeImage(vsa::ImagePtr const &image, uint8_t *result, vsa::Point2U newSize,
                     std::vector<uint32_t> const &offsets) {
             uint32_t const bytesPerSlice = newSize.x * newSize.y;
