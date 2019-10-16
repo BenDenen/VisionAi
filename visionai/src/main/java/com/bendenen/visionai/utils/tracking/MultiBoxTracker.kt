@@ -10,7 +10,7 @@ import android.text.TextUtils
 import android.util.Pair
 import android.util.TypedValue
 import android.widget.Toast
-import com.bendenen.visionai.ml.Classifier
+import com.bendenen.visionai.ml.objectdetection.ObjectDetector
 import com.bendenen.visionai.utils.Logger
 import com.bendenen.visionai.utils.env.BorderedText
 import com.bendenen.visionai.utils.getTransformationMatrix
@@ -122,7 +122,7 @@ class MultiBoxTracker(context: Context) {
 
     @Synchronized
     fun trackResults(
-        results: List<Classifier.Recognition>,
+        results: List<ObjectDetector.Recognition>,
         frame: ByteArray,
         timestamp: Long
     ) {
@@ -224,10 +224,10 @@ class MultiBoxTracker(context: Context) {
 
     private fun processResults(
         timestamp: Long,
-        results: List<Classifier.Recognition>,
+        results: List<ObjectDetector.Recognition>,
         originalFrame: ByteArray
     ) {
-        val rectsToTrack = LinkedList<Pair<Float, Classifier.Recognition>>()
+        val rectsToTrack = LinkedList<Pair<Float, ObjectDetector.Recognition>>()
 
         screenRects.clear()
         val rgbFrameToScreen = Matrix(getFrameToCanvasMatrix())
@@ -252,7 +252,7 @@ class MultiBoxTracker(context: Context) {
                 continue
             }
 
-            rectsToTrack.add(Pair<Float, Classifier.Recognition>(result.confidence, result))
+            rectsToTrack.add(Pair<Float, ObjectDetector.Recognition>(result.confidence, result))
         }
 
         if (rectsToTrack.isEmpty()) {
@@ -288,7 +288,7 @@ class MultiBoxTracker(context: Context) {
     private fun handleDetection(
         frameCopy: ByteArray,
         timestamp: Long,
-        potential: Pair<Float, Classifier.Recognition>
+        potential: Pair<Float, ObjectDetector.Recognition>
     ) {
         val potentialObject =
             objectTracker!!.trackObject(potential.second.getLocation(), timestamp, frameCopy)

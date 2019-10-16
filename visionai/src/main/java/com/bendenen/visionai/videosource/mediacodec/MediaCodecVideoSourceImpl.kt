@@ -149,7 +149,7 @@ class MediaCodecVideoSourceImpl(
 
     // For debug
     override fun onNewData(rgbBytes: ByteArray, bitmap: Bitmap) {
-        videoSourceListener?.onNewData(rgbBytes,bitmap)
+        videoSourceListener?.onNewData(rgbBytes, bitmap)
         isFrameRendering = false
     }
 
@@ -193,7 +193,6 @@ class MediaCodecVideoSourceImpl(
                     // Advancing the extractor is a blocking operation and it MUST be
                     // executed outside the main thread in real applications.
                     val isDone = extractor.advance()
-                    Log.e("MyTag", "advance $isDone" + counter++)
 
                     codecWrapper.popSample(true)
                 }

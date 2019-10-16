@@ -12,11 +12,12 @@ import android.os.Environment.DIRECTORY_MOVIES
 import android.os.SystemClock
 import android.util.Log
 import android.util.Size
-import com.bendenen.visionai.ml.Classifier
-import com.bendenen.visionai.ml.tflite.TFLiteObjectDetection
+import com.bendenen.visionai.ml.objectdetection.ObjectDetector
+import com.bendenen.visionai.ml.objectdetection.tflite.TFLiteObjectDetection
+import com.bendenen.visionai.ml.styletransfer.tflite.TFLiteArtisticStyleTransfer
 import com.bendenen.visionai.utils.Logger
-import com.bendenen.visionai.utils.NativeImageUtilsWrapper
 import com.bendenen.visionai.utils.getTransformationMatrix
+import com.bendenen.visionai.utils.toBitmap
 import com.bendenen.visionai.utils.tracking.MultiBoxTracker
 import com.bendenen.visionai.videoprocessor.VideoProcessor
 import com.bendenen.visionai.videoprocessor.VideoProcessorListener
@@ -36,13 +37,18 @@ class TfLiteVideoProcessorImpl(
     val videoUri: Uri
 ) : VideoProcessor, VideoSourceListener {
 
-    private val detector: Classifier = TFLiteObjectDetection.create(
+    private val detector: ObjectDetector = TFLiteObjectDetection.create(
         application.assets,
         TF_OD_API_MODEL_FILE,
         TF_OD_API_LABELS_FILE,
         TF_OD_API_INPUT_SIZE,
         TF_OD_API_IS_QUANTIZED
     )
+
+    private val artisticStyleTransfer = TFLiteArtisticStyleTransfer(application).also {
+        it.setStyleImage("test_style.jpeg")
+    }
+
     private val videoSource: VideoSource = MediaCodecVideoSourceImpl(
         application,
         requestedWidth,
@@ -52,6 +58,11 @@ class TfLiteVideoProcessorImpl(
     private var croppedBitmap = Bitmap.createBitmap(
         TF_OD_API_INPUT_SIZE,
         TF_OD_API_INPUT_SIZE,
+        Bitmap.Config.ARGB_8888
+    )
+    private var finalImage = Bitmap.createBitmap(
+        videoSource.getSourceWidth(),
+        videoSource.getSourceHeight(),
         Bitmap.Config.ARGB_8888
     )
     private var frameToCropTransform = getTransformationMatrix(
@@ -95,14 +106,14 @@ class TfLiteVideoProcessorImpl(
 
     override fun onNewData(rgbBytes: ByteArray, bitmap: Bitmap) {
 
-        NativeImageUtilsWrapper.resizeImage(
-            rgbBytes,
-            bitmap.width,
-            bitmap.height,
-            TF_OD_API_INPUT_SIZE,
-            TF_OD_API_INPUT_SIZE,
-            inputByteArrayBuffer
-        )
+//        NativeImageUtilsWrapper.resizeImage(
+//            rgbBytes,
+//            bitmap.width,
+//            bitmap.height,
+//            TF_OD_API_INPUT_SIZE,
+//            TF_OD_API_INPUT_SIZE,
+//            inputByteArrayBuffer
+//        )
 
         ++timestamp
         val currTimestamp = timestamp
@@ -114,45 +125,53 @@ class TfLiteVideoProcessorImpl(
         LOGGER.i("Running detection on image $currTimestamp")
         val startTime = SystemClock.uptimeMillis()
 
-        val results = detector.recognizeImageBytes(inputByteArrayBuffer)
+        val result = artisticStyleTransfer.styleTransform(
+            rgbBytes,
+            bitmap.width,
+            bitmap.height
+        )
+
+//        val results = detector.recognizeImageBytes(inputByteArrayBuffer)
 
         lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime
 
         LOGGER.i("Finish detection on image $lastProcessingTimeMs")
 
-        val finalBitmap = Bitmap.createBitmap(bitmap)
-        val croppedBitmapCanvas = Canvas(finalBitmap)
-        val paint = Paint()
-        paint.color = Color.RED
-        paint.style = Paint.Style.STROKE
-        paint.strokeWidth = 10.0f
-
-        var minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API
-        when (MODE) {
-            DetectorMode.TF_OD_API -> minimumConfidence =
-                MINIMUM_CONFIDENCE_TF_OD_API
-        }
-
-        // TODO: We will nedd map of mapped recognitions for postprocessing
-        val mappedRecognitions = LinkedList<Classifier.Recognition>()
-
-        for (result in results) {
-            val location = result.getLocation()
-            if (result.confidence >= minimumConfidence) {
-
-                cropToFrameTransform.mapRect(location)
-
-                croppedBitmapCanvas.drawRect(location, paint)
+//        val finalBitmap = Bitmap.createBitmap(bitmap)
+//        val croppedBitmapCanvas = Canvas(finalBitmap)
+//        val paint = Paint()
+//        paint.color = Color.RED
+//        paint.style = Paint.Style.STROKE
+//        paint.strokeWidth = 10.0f
 //
-//                result.setLocation(location)
-//                mappedRecognitions.add(result)
-            }
-        }
+//        var minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API
+//        when (MODE) {
+//            DetectorMode.TF_OD_API -> minimumConfidence =
+//                MINIMUM_CONFIDENCE_TF_OD_API
+//        }
+//
+//        // TODO: We will nedd map of mapped recognitions for postprocessing
+//        val mappedRecognitions = LinkedList<ObjectDetector.Recognition>()
+//
+//        for (result in results) {
+//            val location = result.getLocation()
+//            if (result.confidence >= minimumConfidence) {
+//
+//                cropToFrameTransform.mapRect(location)
+//
+//                croppedBitmapCanvas.drawRect(location, paint)
+////
+////                result.setLocation(location)
+////                mappedRecognitions.add(result)
+//            }
+//        }
 
-        Log.e("MyTag", "send imGE")
-        videoProcessorListener?.onNewFrameProcessed(finalBitmap)
+        val finalBitmapCanvas = Canvas(finalImage)
+        finalBitmapCanvas.drawBitmap(result.toBitmap(), cropToFrameTransform, null)
 
-        outputEncoder.encodeBitmap(finalBitmap)
+        videoProcessorListener?.onNewFrameProcessed(finalImage)
+
+        outputEncoder.encodeBitmap(Bitmap.createBitmap(finalImage))
 
 //        videoProcessorListener?.onNewFrameProcessed(finalBitmap)
     }
@@ -194,7 +213,7 @@ class TfLiteVideoProcessorImpl(
         }
 
         // TODO: We will nedd map of mapped recognitions for postprocessing
-        val mappedRecognitions = LinkedList<Classifier.Recognition>()
+        val mappedRecognitions = LinkedList<ObjectDetector.Recognition>()
 
         for (result in results) {
             val location = result.getLocation()
@@ -209,7 +228,6 @@ class TfLiteVideoProcessorImpl(
             }
         }
 
-        Log.e("MyTag", "send imGE")
         videoProcessorListener?.onNewFrameProcessed(finalBitmap)
 
         outputEncoder.encodeBitmap(finalBitmap)
@@ -238,7 +256,7 @@ class TfLiteVideoProcessorImpl(
 
         private val LOGGER = Logger()
 
-        private const val TF_OD_API_INPUT_SIZE = 300
+        private const val TF_OD_API_INPUT_SIZE = 384
         private const val TF_OD_API_IS_QUANTIZED = true
         private const val TF_OD_API_MODEL_FILE = "detect.tflite"
         private const val TF_OD_API_LABELS_FILE = "file:///android_asset/labelmap.txt"

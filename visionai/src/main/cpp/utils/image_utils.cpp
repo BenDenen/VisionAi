@@ -48,5 +48,38 @@ Java_com_bendenen_visionai_utils_NativeImageUtilsWrapper_resizeImage(JNIEnv *env
 
 }
 
+JNIEXPORT void JNICALL
+Java_com_bendenen_visionai_utils_NativeImageUtilsWrapper_resizeAndNormalizeImage(JNIEnv *env,
+                                                                                 jobject /* this */,
+                                                                                 jbyteArray rgbaByteArray,
+                                                                                 jint imgWidth,
+                                                                                 jint imgHeight,
+                                                                                 jint newWidth,
+                                                                                 jint newHeight,
+                                                                                 jfloatArray outArray) {
+    jbyte *bytePointer = env->GetByteArrayElements(rgbaByteArray, 0);
+
+    vsa::Point2U newSize(static_cast<uint32_t>(newWidth), static_cast<uint32_t>(newHeight));
+
+    vsa::ImagePtr img(new vsa::Image());
+    img->Set(static_cast<uint32_t>(imgWidth), static_cast<uint32_t>(imgHeight),
+             vsa::ImageFormat::RGBA,
+             (uint8_t *) (bytePointer));
+
+
+    // update resize offsets
+    if (ms_resizeOffsets.size() != newSize.x * newSize.y)
+        ms_resizeOffsets = vsa::utils::CalcResizeOffsets(img->GetChannelsNum(), img->Size(),
+                                                         newSize);
+
+    jfloat *outData = env->GetFloatArrayElements(outArray, nullptr);
+    vsa::utils::ResizeImage<vsa::ImageFormat::RGB>(img, outData, newSize,
+                                                   ms_resizeOffsets);
+
+    env->ReleaseFloatArrayElements(outArray, outData, JNI_ABORT);
+    env->ReleaseByteArrayElements(rgbaByteArray, bytePointer, JNI_ABORT);
+
+}
+
 
 }

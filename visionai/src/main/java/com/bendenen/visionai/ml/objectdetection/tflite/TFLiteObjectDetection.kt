@@ -1,27 +1,23 @@
-package com.bendenen.visionai.ml.tflite
+package com.bendenen.visionai.ml.objectdetection.tflite
 
 import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.RectF
 import android.os.Trace
-import android.util.Log
-import com.bendenen.visionai.ml.Classifier
+import com.bendenen.visionai.ml.objectdetection.ObjectDetector
 import com.bendenen.visionai.utils.Logger
+import com.bendenen.visionai.utils.loadModelFile
 import org.tensorflow.lite.Interpreter
 import java.io.BufferedReader
-import java.io.FileInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
-
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.nio.MappedByteBuffer
-import java.nio.channels.FileChannel
 import java.util.Vector
 
 class TFLiteObjectDetection private constructor() :
-    Classifier {
+    ObjectDetector {
 
     private var isModelQuantized: Boolean = false
     private var inputSize: Int = 0
@@ -34,17 +30,16 @@ class TFLiteObjectDetection private constructor() :
 
     private var imgData: ByteBuffer? = null
 
-    private var tfLite: Interpreter? = null
+    private lateinit var tfLite: Interpreter
 
     override val statString: String
         get() = ""
 
-    override fun recognizeImageBytes(bytes: ByteArray): List<Classifier.Recognition> {
+    override fun recognizeImageBytes(bytes: ByteArray): List<ObjectDetector.Recognition> {
 
         Trace.beginSection("recognizeImage")
 
         Trace.beginSection("preprocessBitmap")
-
 
         Trace.endSection() // preprocessBitmap
 
@@ -72,7 +67,7 @@ class TFLiteObjectDetection private constructor() :
 
         // Show the best detections.
         // after scaling them back to the input size.
-        val recognitions = ArrayList<Classifier.Recognition>(NUM_DETECTIONS)
+        val recognitions = ArrayList<ObjectDetector.Recognition>(NUM_DETECTIONS)
         for (i in 0 until NUM_DETECTIONS) {
             val detection = RectF(
                 outputLocations!![0][i][1] * inputSize,
@@ -85,7 +80,7 @@ class TFLiteObjectDetection private constructor() :
             // while outputClasses correspond to class index from 0 to number_of_classes
             val labelOffset = 1
             recognitions.add(
-                Classifier.Recognition(
+                ObjectDetector.Recognition(
                     "" + i,
                     labels[outputClasses!![0][i].toInt() + labelOffset],
                     outputScores!![0][i],
@@ -97,7 +92,7 @@ class TFLiteObjectDetection private constructor() :
         return recognitions
     }
 
-    override fun recognizeImage(bitmap: Bitmap): List<Classifier.Recognition> {
+    override fun recognizeImage(bitmap: Bitmap): List<ObjectDetector.Recognition> {
         // Log this method so that it can be analyzed with systrace.
         Trace.beginSection("recognizeImage")
 
@@ -146,7 +141,7 @@ class TFLiteObjectDetection private constructor() :
 
         // Show the best detections.
         // after scaling them back to the input size.
-        val recognitions = ArrayList<Classifier.Recognition>(NUM_DETECTIONS)
+        val recognitions = ArrayList<ObjectDetector.Recognition>(NUM_DETECTIONS)
         for (i in 0 until NUM_DETECTIONS) {
             val detection = RectF(
                 outputLocations!![0][i][1] * inputSize,
@@ -159,7 +154,7 @@ class TFLiteObjectDetection private constructor() :
             // while outputClasses correspond to class index from 0 to number_of_classes
             val labelOffset = 1
             recognitions.add(
-                Classifier.Recognition(
+                ObjectDetector.Recognition(
                     "" + i,
                     labels[outputClasses!![0][i].toInt() + labelOffset],
                     outputScores!![0][i],
@@ -194,17 +189,6 @@ class TFLiteObjectDetection private constructor() :
         // Number of threads in the java app
         private const val NUM_THREADS = 4
 
-        /** Memory-map the model file in Assets.  */
-        @Throws(IOException::class)
-        private fun loadModelFile(assets: AssetManager, modelFilename: String): MappedByteBuffer {
-            val fileDescriptor = assets.openFd(modelFilename)
-            val inputStream = FileInputStream(fileDescriptor.fileDescriptor)
-            val fileChannel = inputStream.channel
-            val startOffset = fileDescriptor.startOffset
-            val declaredLength = fileDescriptor.declaredLength
-            return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
-        }
-
         /**
          * Initializes a native TensorFlow session for classifying images.
          *
@@ -221,7 +205,7 @@ class TFLiteObjectDetection private constructor() :
             labelFilename: String,
             inputSize: Int,
             isQuantized: Boolean
-        ): Classifier {
+        ): ObjectDetector {
             val d = TFLiteObjectDetection()
 
             var labelsInput: InputStream? = null
@@ -241,10 +225,10 @@ class TFLiteObjectDetection private constructor() :
 
             try {
                 d.tfLite = Interpreter(
-                    loadModelFile(
-                        assetManager,
+                    assetManager.loadModelFile(
                         modelFilename
-                    )
+                    ),
+                    Interpreter.Options().setUseNNAPI(true)
                 )
             } catch (e: Exception) {
                 throw RuntimeException(e)

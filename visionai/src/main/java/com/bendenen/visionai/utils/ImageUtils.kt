@@ -1,6 +1,9 @@
 package com.bendenen.visionai.utils
 
+import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.Matrix
+import java.nio.ByteBuffer
 
 private val LOGGER = Logger()
 
@@ -55,4 +58,61 @@ fun getTransformationMatrix(
     }
 
     return matrix
+}
+
+fun Bitmap.toNormalizedFloatArray(): FloatArray {
+
+    val intValues = IntArray(this.width * this.height)
+    this.getPixels(intValues, 0, this.width, 0, 0, this.width, this.height)
+
+    val channelNum = 3
+    val rgbFloatArray = FloatArray(this.width * this.height * channelNum)
+
+    for ((index, pixel) in intValues.withIndex()) {
+        rgbFloatArray[index * channelNum + 0] = Color.red(pixel).toFloat() / 255
+        rgbFloatArray[index * channelNum + 1] = Color.green(pixel).toFloat() / 255
+        rgbFloatArray[index * channelNum + 2] = Color.blue(pixel).toFloat() / 255
+    }
+    return rgbFloatArray
+}
+
+fun Bitmap.toNormalizedFloatByteBuffer(
+    buffer: ByteBuffer,
+    inputSize: Int,
+    mean: Float
+) {
+
+    val intValues = IntArray(this.width * this.height)
+    this.getPixels(intValues, 0, this.width, 0, 0, this.width, this.height)
+
+    buffer.rewind()
+    for (i in 0 until inputSize) {
+        for (j in 0 until inputSize) {
+            val pixelValue = intValues[i * inputSize + j]
+            buffer.putFloat(((pixelValue shr 16 and 0xFF) / mean))
+            buffer.putFloat(((pixelValue shr 8 and 0xFF) / mean))
+            buffer.putFloat(((pixelValue and 0xFF) / mean))
+        }
+    }
+}
+
+@Throws(IllegalArgumentException::class)
+fun Array<Array<Array<FloatArray>>>.toBitmap(): Bitmap {
+    require(this.size == 1) { "The first dimension of Array is too big ${this.size}" }
+    val bitmapContentArray = this[0]
+    val width = bitmapContentArray.size
+    val height = bitmapContentArray[0].size
+    val channels = bitmapContentArray[0][0].size
+    require(channels == 3) { "Channels should be equals 3 for RGB image but it is $channels" }
+    val pixelValues = IntArray(width * height)
+    var index = 0
+    for (w in 0 until width) {
+        for (h in 0 until height) {
+            val r = (bitmapContentArray[w][h][0] * 255).toInt()
+            val g = (bitmapContentArray[w][h][1] * 255).toInt()
+            val b = (bitmapContentArray[w][h][2] * 255).toInt()
+            pixelValues[index++] = Color.rgb(r, g, b)
+        }
+    }
+    return Bitmap.createBitmap(pixelValues, width, height, Bitmap.Config.ARGB_8888)
 }
