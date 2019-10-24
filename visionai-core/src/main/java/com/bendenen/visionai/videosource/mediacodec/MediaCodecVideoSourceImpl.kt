@@ -24,9 +24,7 @@ import kotlin.coroutines.CoroutineContext
 
 class MediaCodecVideoSourceImpl(
     application: Application,
-    private val requestedWidth: Int,
-    private val requestedHeight: Int,
-    val uri: Uri
+    uri: Uri
 ) : VideoSource, RenderActionsListener, OutputBufferListener, CoroutineScope {
 
     companion object {

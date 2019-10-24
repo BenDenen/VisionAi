@@ -1,1 +1,1 @@
-include ':app', ':visionai-core'
+include ':app', ':visionai-core', ':visionai-tflite-processor'

@@ -18,10 +18,7 @@ import androidx.annotation.WorkerThread
 import com.bendenen.visionai.videoprocessor.outputencoder.OutputEncoder
 import java.io.File
 
-class MediaMuxerOutputEncoderImpl(
-    val outputVideoWidth: Int,
-    val outputVideoHeight: Int
-) : OutputEncoder {
+class MediaMuxerOutputEncoderImpl : OutputEncoder {
 
     private var currentState = OutputEncoder.EncoderState.NOT_INITIALIZED
 
@@ -35,7 +32,11 @@ class MediaMuxerOutputEncoderImpl(
     private var encodedFrameCount: Int = 0
     private var addedFrameCount: Int = 0
 
-    override fun initialize(outputFile: File) {
+    override fun initialize(
+        outputFile: File,
+        outputVideoWidth: Int,
+        outputVideoHeight: Int
+    ) {
         val videoFormat =
             MediaFormat.createVideoFormat(MIMETYPE_VIDEO_AVC, outputVideoWidth, outputVideoHeight)
         videoFormat.setInteger(KEY_BIT_RATE, BIT_RATE)

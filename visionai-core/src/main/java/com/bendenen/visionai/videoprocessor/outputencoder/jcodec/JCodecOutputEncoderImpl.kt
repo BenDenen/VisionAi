@@ -24,7 +24,11 @@ class JCodecOutputEncoderImpl : OutputEncoder {
 
     override fun getEncoderState(): OutputEncoder.EncoderState = currentState
 
-    override fun initialize(outputFile: File) {
+    override fun initialize(
+        outputFile: File,
+        outputVideoWidth: Int,
+        outputVideoHeight: Int
+    ) {
         if (currentState == OutputEncoder.EncoderState.ENCODING) {
             Log.e(TAG, "Can not initialize Encoder when it is in ENCODING state. Finish encoding. ")
             return

@@ -1,10 +1,18 @@
 package com.bendenen.visionai.videoprocessor
 
-abstract class VideoProcessor {
+import com.bendenen.visionai.videosource.VideoSourceListener
 
-    internal abstract fun setListener(videoProcessorListener: VideoProcessorListener)
+abstract class VideoProcessor : VideoSourceListener {
 
-    abstract fun start()
+    protected var videoProcessorListener: VideoProcessorListener? = null
 
-    abstract fun stop()
+    internal fun setListener(videoProcessorListener: VideoProcessorListener) {
+        this.videoProcessorListener = videoProcessorListener
+    }
+
+    abstract fun init(
+        videoSourceWidth: Int,
+        videoSourceHeight: Int
+    )
+
 }

@@ -11,7 +11,11 @@ interface OutputEncoder {
     @WorkerThread
     fun encodeBitmap(bitmap: Bitmap)
 
-    fun initialize(outputFile: File)
+    fun initialize(
+        outputFile: File,
+        outputVideoWidth: Int,
+        outputVideoHeight: Int
+    )
 
     fun finish()
 
