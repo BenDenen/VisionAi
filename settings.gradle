@@ -1,1 +1,1 @@
-include ':app', ':visionai'
+include ':app', ':visionai-core'

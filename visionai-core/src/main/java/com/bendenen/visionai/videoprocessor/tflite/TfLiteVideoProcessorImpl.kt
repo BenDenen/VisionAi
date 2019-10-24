@@ -33,9 +33,10 @@ class TfLiteVideoProcessorImpl(
     private val application: Application,
     private val requestedWidth: Int,
     private val requestedHeight: Int,
-    override var videoProcessorListener: VideoProcessorListener?,
     val videoUri: Uri
-) : VideoProcessor, VideoSourceListener {
+) : VideoProcessor(), VideoSourceListener {
+
+    private var videoProcessorListener: VideoProcessorListener? = null
 
     private val detector: ObjectDetector = TFLiteObjectDetection.create(
         application.assets,
@@ -88,6 +89,10 @@ class TfLiteVideoProcessorImpl(
     private var lastProcessingTimeMs: Long = 0
 
     private val inputByteArrayBuffer = ByteArray(TF_OD_API_INPUT_SIZE * TF_OD_API_INPUT_SIZE * 3)
+
+    override fun setListener(videoProcessorListener: VideoProcessorListener) {
+        this.videoProcessorListener = videoProcessorListener
+    }
 
     override fun start() {
         outputEncoder.initialize(
