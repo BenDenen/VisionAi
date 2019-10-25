@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.bendenen.visionai.VisionAi
@@ -39,6 +40,17 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
 
             startActivityForResult(galleryIntent, REQUEST_VIDEO_CAPTURE)
         }
+        request_preview.setOnClickListener {
+            loading_indicator.visibility = View.VISIBLE
+            VisionAi.requestPreview(1000) {
+                input_surface.setImageBitmap(it)
+                loading_indicator.visibility = View.GONE
+            }
+        }
+        request_processing.setOnClickListener {
+            request_preview.isEnabled = false
+            VisionAi.start(this)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -47,6 +59,7 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
             VisionAi.stop()
             data?.data?.let {
                 if (allPermissionsGranted()) {
+                    loading_indicator.visibility = View.VISIBLE
                     VisionAi.init(
                         VisionAiConfig(
                             application = application,
@@ -54,7 +67,9 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
                         )
                     ) {
                         VisionAi.setProcessor(TfLiteVideoProcessorImpl(application))
-                        VisionAi.start(this)
+                        loading_indicator.visibility = View.GONE
+                        request_preview.isEnabled = true
+                        request_processing.isEnabled = true
                     }
                 }
             }
@@ -71,13 +86,11 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
     }
 
     override fun onFrameResult(bitmap: Bitmap) {
-        runOnUiThread {
-            input_surface.setImageBitmap(bitmap)
-        }
+        input_surface.setImageBitmap(bitmap)
     }
 
     override fun onFileResult(filePath: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        request_preview.isEnabled = true
     }
 
     private fun allPermissionsGranted(): Boolean {

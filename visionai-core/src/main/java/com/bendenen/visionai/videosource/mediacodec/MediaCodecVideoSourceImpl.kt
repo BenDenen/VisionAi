@@ -6,11 +6,12 @@ import android.graphics.Bitmap
 import android.media.MediaCodec
 import android.media.MediaExtractor
 import android.media.MediaFormat
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.renderscript.RenderScript
 import android.util.Log
 import android.util.Size
-import com.bendenen.visionai.videosource.VideoSource
+import com.bendenen.visionai.videosource.MediaFileVideoSource
 import com.bendenen.visionai.videosource.VideoSourceListener
 import com.bendenen.visionai.videosource.render.ImageRender
 import com.bendenen.visionai.videosource.render.RenderActionsListener
@@ -24,7 +25,7 @@ import kotlin.coroutines.CoroutineContext
 
 class MediaCodecVideoSourceImpl(
     private val application: Application
-) : VideoSource, RenderActionsListener, OutputBufferListener, CoroutineScope {
+) : MediaFileVideoSource, RenderActionsListener, OutputBufferListener, CoroutineScope {
 
     companion object {
         const val TAG = "MediaCodecSource"
@@ -36,6 +37,7 @@ class MediaCodecVideoSourceImpl(
 
     private lateinit var codecWrapper: MediaCodecHandler
     private val extractor = MediaExtractor()
+    private lateinit var videoUri: Uri
 
     private val timeAnimator = TimeAnimator()
 
@@ -50,68 +52,6 @@ class MediaCodecVideoSourceImpl(
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
-
-    override fun loadVideoFile(uri: Uri, ready: () -> Unit) {
-        launch {
-            withContext(Dispatchers.IO) {
-
-                extractor.setDataSource(
-                    application, uri, null
-                )
-
-                val nTracks = extractor.trackCount
-
-                // Begin by unselecting all of the tracks in the extractor, so we won't see
-                // any tracks that we haven't explicitly selected.
-                for (i in 0 until nTracks) {
-                    extractor.unselectTrack(i)
-                }
-
-                // Find the first video track in the stream. In a real-world application
-                // it's possible that the stream would contain multiple tracks, but this
-                // sample assumes that we just want to play the first one.
-                for (i in 0 until nTracks) {
-                    // Try to create a video codec for this track. This call will return null if the
-                    // track is not a video track, or not a recognized video format. Once it returns
-                    // a valid MediaCodecWrapper, we can break out of the loop.
-
-                    val trackFormat = extractor.getTrackFormat(i)
-
-                    val mimeType = trackFormat.getString(MediaFormat.KEY_MIME)
-
-                    if (mimeType.contains("video/")) {
-
-                        if (!::imageRender.isInitialized) {
-                            videoWidth = trackFormat.getInteger(MediaFormat.KEY_WIDTH)
-                            videoHeight = trackFormat.getInteger(MediaFormat.KEY_HEIGHT)
-
-                            Log.d(TAG, " videoWidth: $videoWidth  videoHeight: $videoHeight")
-                            Log.d(TAG, " trackFormat: $trackFormat")
-
-                            imageRender = IntrinsicRenderScriptImageRender(
-                                RenderScript.create(application),
-                                Size(videoWidth, videoHeight)
-                            )
-                            imageRender.renderActionsListener = this@MediaCodecVideoSourceImpl
-                        }
-
-                        codecWrapper = MediaCodecHandler(
-                            trackFormat,
-                            imageRender.getSurface(),
-                            this@MediaCodecVideoSourceImpl
-                        )
-                        extractor.selectTrack(i)
-                        break
-                    }
-                }
-
-                if (!::codecWrapper.isInitialized) {
-                    throw IllegalArgumentException()
-                }
-            }
-            ready.invoke()
-        }
-    }
 
     // Video Source Actions
     override fun getSourceWidth(): Int = videoWidth
@@ -147,6 +87,71 @@ class MediaCodecVideoSourceImpl(
         imageRender.release()
     }
 
+    // MediaFileVideoSource
+
+    suspend override fun loadVideoFile(uri: Uri) =
+        withContext(Dispatchers.IO) {
+
+            extractor.setDataSource(
+                application, uri, null
+            )
+            videoUri = uri
+
+            val nTracks = extractor.trackCount
+
+            // Begin by unselecting all of the tracks in the extractor, so we won't see
+            // any tracks that we haven't explicitly selected.
+            for (i in 0 until nTracks) {
+                extractor.unselectTrack(i)
+            }
+
+            // Find the first video track in the stream. In a real-world application
+            // it's possible that the stream would contain multiple tracks, but this
+            // sample assumes that we just want to play the first one.
+            for (i in 0 until nTracks) {
+                // Try to create a video codec for this track. This call will return null if the
+                // track is not a video track, or not a recognized video format. Once it returns
+                // a valid MediaCodecWrapper, we can break out of the loop.
+
+                val trackFormat = extractor.getTrackFormat(i)
+
+                val mimeType = trackFormat.getString(MediaFormat.KEY_MIME)
+
+                if (mimeType.contains("video/")) {
+
+                    if (!::imageRender.isInitialized) {
+                        videoWidth = trackFormat.getInteger(MediaFormat.KEY_WIDTH)
+                        videoHeight = trackFormat.getInteger(MediaFormat.KEY_HEIGHT)
+
+                        Log.d(TAG, " videoWidth: $videoWidth  videoHeight: $videoHeight")
+                        Log.d(TAG, " trackFormat: $trackFormat")
+
+                        imageRender = IntrinsicRenderScriptImageRender(
+                            RenderScript.create(application),
+                            Size(videoWidth, videoHeight)
+                        )
+                        imageRender.renderActionsListener = this@MediaCodecVideoSourceImpl
+                    }
+
+                    codecWrapper = MediaCodecHandler(
+                        trackFormat,
+                        imageRender.getSurface(),
+                        this@MediaCodecVideoSourceImpl
+                    )
+                    extractor.selectTrack(i)
+                    break
+                }
+            }
+
+            if (!::codecWrapper.isInitialized) {
+                throw IllegalArgumentException()
+            }
+        }
+
+    override suspend fun requestPreview(
+        timestamp: Long
+    ) = getPreviewForTime(timestamp)
+
     // Render actions
 
     // For debug
@@ -171,6 +176,14 @@ class MediaCodecVideoSourceImpl(
     override fun onIsNotEmpty() {
         isFrameRendering = true
     }
+
+    private suspend fun getPreviewForTime(timestamp: Long): Bitmap =
+        withContext(Dispatchers.IO) {
+            val mediaMetadataRetriever = MediaMetadataRetriever()
+
+            mediaMetadataRetriever.setDataSource(application, videoUri)
+            return@withContext mediaMetadataRetriever.getFrameAtTime(timestamp)
+        }
 
     private suspend fun startDataRetrieving() =
         withContext(Dispatchers.IO) {

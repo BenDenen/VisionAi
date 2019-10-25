@@ -112,10 +112,6 @@ internal class Camera2VideoSourceImpl(
 
     override fun isAttached(): Boolean = videoSourceListener != null
 
-    override fun loadVideoFile(uri: Uri, ready: () -> Unit) {
-        // TODO: DO nothing
-    }
-
     override fun attach(videoSourceListener: VideoSourceListener) {
         this.videoSourceListener = videoSourceListener
         startBackgroundThread()

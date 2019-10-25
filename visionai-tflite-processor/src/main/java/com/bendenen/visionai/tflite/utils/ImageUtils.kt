@@ -5,7 +5,6 @@ import android.graphics.Color
 import android.graphics.Matrix
 import java.nio.ByteBuffer
 
-
 fun getTransformationMatrix(
     srcWidth: Int,
     srcHeight: Int,
@@ -72,6 +71,23 @@ fun Bitmap.toNormalizedFloatArray(): FloatArray {
     return rgbFloatArray
 }
 
+fun Bitmap.toByteArray(): ByteArray {
+
+    val intValues = IntArray(this.width * this.height)
+    this.getPixels(intValues, 0, this.width, 0, 0, this.width, this.height)
+
+    val channelNum = 4
+    val byteArray = ByteArray(this.width * this.height * channelNum)
+
+    for ((index, pixel) in intValues.withIndex()) {
+        byteArray[index * channelNum + 0] = (pixel shr 16 and 0xFF).toByte()
+        byteArray[index * channelNum + 1] = (pixel shr 8 and 0xFF).toByte()
+        byteArray[index * channelNum + 2] = (pixel and 0xFF).toByte()
+        byteArray[index * channelNum + 3] = Color.alpha(pixel).toByte()
+    }
+    return byteArray
+}
+
 fun Bitmap.toNormalizedFloatByteBuffer(
     buffer: ByteBuffer,
     inputSize: Int,
@@ -109,6 +125,24 @@ fun Array<Array<Array<FloatArray>>>.toBitmap(): Bitmap {
             val b = (bitmapContentArray[w][h][2] * 255).toInt()
             pixelValues[index++] = Color.rgb(r, g, b)
         }
+    }
+    return Bitmap.createBitmap(pixelValues, width, height, Bitmap.Config.ARGB_8888)
+}
+
+fun ByteArray.toBitmap(
+    width: Int,
+    height: Int
+) : Bitmap {
+    val pixelValues = IntArray(width * height)
+    var intIndex = 0
+    val channelNum = 3
+
+
+    for ((index, pixel) in pixelValues.withIndex()) {
+        val r = this[index * channelNum + 0].toInt()
+        val g = this[index * channelNum + 1].toInt()
+        val b = this[index * channelNum + 2].toInt()
+        pixelValues[intIndex++] = Color.rgb(r, g, b)
     }
     return Bitmap.createBitmap(pixelValues, width, height, Bitmap.Config.ARGB_8888)
 }
