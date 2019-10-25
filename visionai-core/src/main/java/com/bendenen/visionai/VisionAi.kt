@@ -1,18 +1,23 @@
 package com.bendenen.visionai
 
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Environment
 import android.util.Log
-import com.bendenen.visionai.videoprocessor.VideoProcessor
-import com.bendenen.visionai.videoprocessor.VideoProcessorListener
 import com.bendenen.visionai.outputencoder.OutputEncoder
 import com.bendenen.visionai.outputencoder.mediamuxer.MediaMuxerOutputEncoderImpl
+import com.bendenen.visionai.videoprocessor.VideoProcessor
+import com.bendenen.visionai.videoprocessor.VideoProcessorListener
+import com.bendenen.visionai.videosource.MediaFileVideoSource
 import com.bendenen.visionai.videosource.VideoSource
 import com.bendenen.visionai.videosource.mediacodec.MediaCodecVideoSourceImpl
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.io.File
+import kotlin.coroutines.CoroutineContext
 
-object VisionAi : VideoProcessorListener {
+object VisionAi : VideoProcessorListener, CoroutineScope {
 
     interface ResultListener {
         fun onFrameResult(bitmap: Bitmap)
@@ -28,32 +33,39 @@ object VisionAi : VideoProcessorListener {
 
     private var resultListener: ResultListener? = null
 
+    private val job = Job()
+
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
+
     fun init(
         visionAiConfig: VisionAiConfig,
         ready: () -> Unit
     ) {
 
         fun initOutputEncoder() {
+            outputEncoder = visionAiConfig.outputEncoder ?: MediaMuxerOutputEncoderImpl()
+            val outputFile = visionAiConfig.outputFile ?: File(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES),
+                "temp.mp4"
+            )
             outputEncoder.initialize(
-                File(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES),
-                    "temp.mp4"
-                ),
-                this.videoSource.getSourceWidth(),
-                this.videoSource.getSourceHeight()
+                outputFile,
+                videoSource.getSourceWidth(),
+                videoSource.getSourceHeight()
             )
         }
 
-        outputEncoder = visionAiConfig.outputEncoder ?: MediaMuxerOutputEncoderImpl()
         if (visionAiConfig.videoSource != null) {
             videoSource = visionAiConfig.videoSource
             initOutputEncoder()
             ready.invoke()
         } else if (visionAiConfig.videoUri != null && visionAiConfig.application != null) {
             videoSource = MediaCodecVideoSourceImpl(visionAiConfig.application).also {
-                it.loadVideoFile(
-                    visionAiConfig.videoUri
-                ) {
+                launch {
+                    it.loadVideoFile(
+                        visionAiConfig.videoUri
+                    )
                     initOutputEncoder()
                     ready.invoke()
                 }
@@ -76,6 +88,21 @@ object VisionAi : VideoProcessorListener {
         }
     }
 
+    @Throws(IllegalArgumentException::class, AssertionError::class)
+    fun requestPreview(
+        timestamp: Long,
+        resultHandler: (Bitmap) -> Unit
+    ) {
+        assert(::videoSource.isInitialized)
+        assert(::videoProcessor.isInitialized)
+        require(videoSource is MediaFileVideoSource)
+        launch {
+            val bitmap = (videoSource as MediaFileVideoSource).requestPreview(timestamp)
+            val result = videoProcessor.applyForData(bitmap)
+            resultHandler.invoke(result)
+        }
+    }
+
     fun start(resultListener: ResultListener) {
         if (!::videoProcessor.isInitialized) {
             Log.e(TAG, " videoProcessor is not initialized")
@@ -94,12 +121,16 @@ object VisionAi : VideoProcessorListener {
     }
 
     fun release() {
-        // TODO: Release resources
+        job.cancel()
     }
 
     override fun onNewFrameProcessed(bitmap: Bitmap) {
         outputEncoder.encodeBitmap(Bitmap.createBitmap(bitmap))
-        resultListener?.onFrameResult(bitmap)
+        resultListener?.let {
+            launch {
+                it.onFrameResult(bitmap)
+            }
+        }
     }
 
     override fun onFinish() {

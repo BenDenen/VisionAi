@@ -16,7 +16,10 @@ import com.bendenen.visionai.tflite.tools.objectdetection.tflite.TFLiteObjectDet
 import com.bendenen.visionai.tflite.tools.styletransfer.tflite.TFLiteArtisticStyleTransfer
 import com.bendenen.visionai.tflite.utils.getTransformationMatrix
 import com.bendenen.visionai.tflite.utils.toBitmap
+import com.bendenen.visionai.tflite.utils.toByteArray
 import com.bendenen.visionai.videoprocessor.VideoProcessor
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.LinkedList
 
@@ -76,6 +79,30 @@ class TfLiteVideoProcessorImpl(
             frameToCropTransform.invert(it)
         }
     }
+
+    override suspend fun applyForData(bitmap: Bitmap): Bitmap =
+        applyForData(
+            bitmap.toByteArray(),
+            bitmap.width,
+            bitmap.height
+        )
+
+    override suspend fun applyForData(
+        rgbBytes: ByteArray,
+        width: Int,
+        height: Int
+    ): Bitmap =
+        withContext(Dispatchers.IO) {
+            val result = artisticStyleTransfer.styleTransform(
+                rgbBytes,
+                width,
+                height
+            )
+            val finalBitmapCanvas = Canvas(finalImage)
+            finalBitmapCanvas.drawBitmap(result.toBitmap(), cropToFrameTransform, null)
+            return@withContext finalImage
+//            return@withContext rgbBytes.toBitmap(width, height)
+        }
 
     override fun onNewData(rgbBytes: ByteArray, bitmap: Bitmap) {
 
@@ -139,7 +166,6 @@ class TfLiteVideoProcessorImpl(
         finalBitmapCanvas.drawBitmap(result.toBitmap(), cropToFrameTransform, null)
 
         videoProcessorListener?.onNewFrameProcessed(finalImage)
-
     }
 
     override fun onNewFrame(rgbBytes: ByteArray) {
@@ -191,7 +217,6 @@ class TfLiteVideoProcessorImpl(
         }
 
         videoProcessorListener?.onNewFrameProcessed(finalBitmap)
-
     }
 
     override fun onFinish() {
