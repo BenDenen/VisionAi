@@ -1,6 +1,10 @@
 package com.bendenen.visionai.videosource
 
+import android.net.Uri
+
 interface VideoSource {
+
+    fun loadVideoFile(uri: Uri, ready: () -> Unit)
 
     fun getSourceWidth(): Int
 

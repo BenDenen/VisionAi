@@ -1,8 +1,8 @@
-package com.bendenen.visionai.videoprocessor.outputencoder.jcodec
+package com.bendenen.visionai.outputencoder.jcodec
 
 import android.graphics.Bitmap
 import android.util.Log
-import com.bendenen.visionai.videoprocessor.outputencoder.OutputEncoder
+import com.bendenen.visionai.outputencoder.OutputEncoder
 import org.jcodec.api.android.AndroidSequenceEncoder
 import org.jcodec.common.io.FileChannelWrapper
 import org.jcodec.common.io.NIOUtils

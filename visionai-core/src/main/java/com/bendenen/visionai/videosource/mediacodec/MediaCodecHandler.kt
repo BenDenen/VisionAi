@@ -5,6 +5,7 @@ import android.media.MediaCodecInfo
 import android.media.MediaExtractor
 import android.media.MediaFormat
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.Surface
 import java.nio.ByteBuffer
@@ -23,7 +24,6 @@ class MediaCodecHandler(
         private val CRYPTO_INFO = MediaCodec.CryptoInfo()
     }
 
-    private val callBackHandler = Handler()
     private val decoder: MediaCodec
 
     // References to the internal buffers managed by the codec. The codec

@@ -13,6 +13,7 @@ import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CaptureRequest
 import android.hardware.camera2.CaptureResult
 import android.hardware.camera2.TotalCaptureResult
+import android.net.Uri
 import android.os.Handler
 import android.os.HandlerThread
 import android.renderscript.RenderScript
@@ -31,6 +32,7 @@ internal class Camera2VideoSourceImpl(
     private val width: Int,
     private val height: Int
 ) : VideoSource, RenderActionsListener {
+
     private var videoSourceListener: VideoSourceListener? = null
 
     private lateinit var imageRender: ImageRender
@@ -109,6 +111,10 @@ internal class Camera2VideoSourceImpl(
     override fun getSourceHeight(): Int = previewSize.height
 
     override fun isAttached(): Boolean = videoSourceListener != null
+
+    override fun loadVideoFile(uri: Uri, ready: () -> Unit) {
+        // TODO: DO nothing
+    }
 
     override fun attach(videoSourceListener: VideoSourceListener) {
         this.videoSourceListener = videoSourceListener

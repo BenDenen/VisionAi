@@ -1,4 +1,4 @@
-package com.bendenen.visionai.videoprocessor.outputencoder.mediamuxer
+package com.bendenen.visionai.outputencoder.mediamuxer
 
 import android.graphics.Bitmap
 import android.media.MediaCodec
@@ -15,7 +15,7 @@ import android.media.MediaFormat.MIMETYPE_VIDEO_AVC
 import android.media.MediaMuxer
 import android.util.Log
 import androidx.annotation.WorkerThread
-import com.bendenen.visionai.videoprocessor.outputencoder.OutputEncoder
+import com.bendenen.visionai.outputencoder.OutputEncoder
 import java.io.File
 
 class MediaMuxerOutputEncoderImpl : OutputEncoder {
@@ -39,9 +39,15 @@ class MediaMuxerOutputEncoderImpl : OutputEncoder {
     ) {
         val videoFormat =
             MediaFormat.createVideoFormat(MIMETYPE_VIDEO_AVC, outputVideoWidth, outputVideoHeight)
-        videoFormat.setInteger(KEY_BIT_RATE, BIT_RATE)
-        videoFormat.setInteger(KEY_FRAME_RATE, FRAME_RATE)
-        videoFormat.setInteger(KEY_I_FRAME_INTERVAL, I_FRAME_INTERVAL)
+        videoFormat.setInteger(KEY_BIT_RATE,
+            BIT_RATE
+        )
+        videoFormat.setInteger(KEY_FRAME_RATE,
+            FRAME_RATE
+        )
+        videoFormat.setInteger(KEY_I_FRAME_INTERVAL,
+            I_FRAME_INTERVAL
+        )
         videoFormat.setInteger(KEY_COLOR_FORMAT, COLOR_FormatYUV420Flexible)
         videoCodec.configure(videoFormat, null, null, CONFIGURE_FLAG_ENCODE)
         videoCodec.start()

@@ -9,6 +9,7 @@ import android.provider.MediaStore
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.bendenen.visionai.VisionAi
+import com.bendenen.visionai.VisionAiConfig
 import com.bendenen.visionai.tflite.videoprocessor.TfLiteVideoProcessorImpl
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -47,13 +48,14 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
             data?.data?.let {
                 if (allPermissionsGranted()) {
                     VisionAi.init(
-                        application,
-                        it,
-                        TfLiteVideoProcessorImpl(
-                            application
+                        VisionAiConfig(
+                            application = application,
+                            videoUri = it
                         )
-                    )
-                    VisionAi.start(this)
+                    ) {
+                        VisionAi.setProcessor(TfLiteVideoProcessorImpl(application))
+                        VisionAi.start(this)
+                    }
                 }
             }
 

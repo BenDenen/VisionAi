@@ -23,8 +23,7 @@ import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
 class MediaCodecVideoSourceImpl(
-    application: Application,
-    uri: Uri
+    private val application: Application
 ) : VideoSource, RenderActionsListener, OutputBufferListener, CoroutineScope {
 
     companion object {
@@ -52,60 +51,65 @@ class MediaCodecVideoSourceImpl(
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
 
-    init {
+    override fun loadVideoFile(uri: Uri, ready: () -> Unit) {
+        launch {
+            withContext(Dispatchers.IO) {
 
-        extractor.setDataSource(
-            application, uri, null
-        )
+                extractor.setDataSource(
+                    application, uri, null
+                )
 
-        val nTracks = extractor.trackCount
+                val nTracks = extractor.trackCount
 
-        // Begin by unselecting all of the tracks in the extractor, so we won't see
-        // any tracks that we haven't explicitly selected.
-        for (i in 0 until nTracks) {
-            extractor.unselectTrack(i)
-        }
-
-        // Find the first video track in the stream. In a real-world application
-        // it's possible that the stream would contain multiple tracks, but this
-        // sample assumes that we just want to play the first one.
-        for (i in 0 until nTracks) {
-            // Try to create a video codec for this track. This call will return null if the
-            // track is not a video track, or not a recognized video format. Once it returns
-            // a valid MediaCodecWrapper, we can break out of the loop.
-
-            val trackFormat = extractor.getTrackFormat(i)
-
-            val mimeType = trackFormat.getString(MediaFormat.KEY_MIME)
-
-            if (mimeType.contains("video/")) {
-
-                if (!::imageRender.isInitialized) {
-                    videoWidth = trackFormat.getInteger(MediaFormat.KEY_WIDTH)
-                    videoHeight = trackFormat.getInteger(MediaFormat.KEY_HEIGHT)
-
-                    Log.d(TAG, " videoWidth: $videoWidth  videoHeight: $videoHeight")
-                    Log.d(TAG, " trackFormat: $trackFormat")
-
-                    imageRender = IntrinsicRenderScriptImageRender(
-                        RenderScript.create(application),
-                        Size(videoWidth, videoHeight)
-                    )
-                    imageRender.renderActionsListener = this
+                // Begin by unselecting all of the tracks in the extractor, so we won't see
+                // any tracks that we haven't explicitly selected.
+                for (i in 0 until nTracks) {
+                    extractor.unselectTrack(i)
                 }
 
-                codecWrapper = MediaCodecHandler(
-                    trackFormat,
-                    imageRender.getSurface(),
-                    this
-                )
-                extractor.selectTrack(i)
-                break
-            }
-        }
+                // Find the first video track in the stream. In a real-world application
+                // it's possible that the stream would contain multiple tracks, but this
+                // sample assumes that we just want to play the first one.
+                for (i in 0 until nTracks) {
+                    // Try to create a video codec for this track. This call will return null if the
+                    // track is not a video track, or not a recognized video format. Once it returns
+                    // a valid MediaCodecWrapper, we can break out of the loop.
 
-        if (!::codecWrapper.isInitialized) {
-            throw IllegalArgumentException()
+                    val trackFormat = extractor.getTrackFormat(i)
+
+                    val mimeType = trackFormat.getString(MediaFormat.KEY_MIME)
+
+                    if (mimeType.contains("video/")) {
+
+                        if (!::imageRender.isInitialized) {
+                            videoWidth = trackFormat.getInteger(MediaFormat.KEY_WIDTH)
+                            videoHeight = trackFormat.getInteger(MediaFormat.KEY_HEIGHT)
+
+                            Log.d(TAG, " videoWidth: $videoWidth  videoHeight: $videoHeight")
+                            Log.d(TAG, " trackFormat: $trackFormat")
+
+                            imageRender = IntrinsicRenderScriptImageRender(
+                                RenderScript.create(application),
+                                Size(videoWidth, videoHeight)
+                            )
+                            imageRender.renderActionsListener = this@MediaCodecVideoSourceImpl
+                        }
+
+                        codecWrapper = MediaCodecHandler(
+                            trackFormat,
+                            imageRender.getSurface(),
+                            this@MediaCodecVideoSourceImpl
+                        )
+                        extractor.selectTrack(i)
+                        break
+                    }
+                }
+
+                if (!::codecWrapper.isInitialized) {
+                    throw IllegalArgumentException()
+                }
+            }
+            ready.invoke()
         }
     }
 

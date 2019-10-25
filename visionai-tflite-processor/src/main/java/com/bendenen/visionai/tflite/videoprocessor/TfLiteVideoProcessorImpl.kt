@@ -30,12 +30,6 @@ class TfLiteVideoProcessorImpl(
         it.setStyleImage("test_style.jpeg")
     }
 
-    //    private val videoSource: VideoSource = MediaCodecVideoSourceImpl(
-//        application,
-//        requestedWidth,
-//        requestedHeight,
-//        videoUri
-//    )
     private lateinit var croppedBitmap: Bitmap
 
     private lateinit var finalImage: Bitmap
@@ -43,11 +37,6 @@ class TfLiteVideoProcessorImpl(
     private lateinit var frameToCropTransform: Matrix
 
     private lateinit var cropToFrameTransform: Matrix
-
-//    private val outputEncoder: OutputEncoder = MediaMuxerOutputEncoderImpl(
-//        videoSource.getSourceWidth(),
-//        videoSource.getSourceHeight()
-//    )
 
     private var timestamp: Long = 0
     private var lastProcessingTimeMs: Long = 0
@@ -87,21 +76,6 @@ class TfLiteVideoProcessorImpl(
             frameToCropTransform.invert(it)
         }
     }
-
-//    override fun start() {
-////        outputEncoder.initialize(
-////            File(
-////                Environment.getExternalStoragePublicDirectory(DIRECTORY_MOVIES),
-////                "temp.mp4"
-////            )
-////        )
-////        videoSource.useBitmap(true)
-////        videoSource.attach(this)
-//    }
-//
-//    override fun stop() {
-////        videoSource.detach()
-//    }
 
     override fun onNewData(rgbBytes: ByteArray, bitmap: Bitmap) {
 
@@ -166,9 +140,6 @@ class TfLiteVideoProcessorImpl(
 
         videoProcessorListener?.onNewFrameProcessed(finalImage)
 
-//        outputEncoder.encodeBitmap(Bitmap.createBitmap(finalImage))
-
-//        videoProcessorListener?.onNewFrameProcessed(finalBitmap)
     }
 
     override fun onNewFrame(rgbBytes: ByteArray) {
@@ -221,14 +192,10 @@ class TfLiteVideoProcessorImpl(
 
         videoProcessorListener?.onNewFrameProcessed(finalBitmap)
 
-//        outputEncoder.encodeBitmap(finalBitmap)
-
-//        videoProcessorListener?.onNewFrameProcessed(finalBitmap)
     }
 
     override fun onFinish() {
         videoProcessorListener?.onFinish()
-//        outputEncoder.finish()
         Log.e(
             "MyTag",
             File(

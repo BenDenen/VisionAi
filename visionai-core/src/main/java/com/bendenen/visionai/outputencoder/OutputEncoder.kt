@@ -1,4 +1,4 @@
-package com.bendenen.visionai.videoprocessor.outputencoder
+package com.bendenen.visionai.outputencoder
 
 import android.graphics.Bitmap
 import androidx.annotation.WorkerThread
