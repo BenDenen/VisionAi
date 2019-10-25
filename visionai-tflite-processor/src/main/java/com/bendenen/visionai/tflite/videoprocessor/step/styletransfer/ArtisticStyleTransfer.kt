@@ -1,4 +1,4 @@
-package com.bendenen.visionai.tflite.tools.styletransfer
+package com.bendenen.visionai.tflite.videoprocessor.step.styletransfer
 
 import androidx.annotation.WorkerThread
 

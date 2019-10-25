@@ -1,4 +1,4 @@
-package com.bendenen.visionai.tflite.tools.objectdetection
+package com.bendenen.visionai.tflite.videoprocessor.step.objectdetection
 
 import android.graphics.Bitmap
 import android.graphics.RectF

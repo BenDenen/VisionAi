@@ -11,7 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.bendenen.visionai.VisionAi
 import com.bendenen.visionai.VisionAiConfig
-import com.bendenen.visionai.tflite.videoprocessor.TfLiteVideoProcessorImpl
+import com.bendenen.visionai.tflite.videoprocessor.step.styletransfer.ArtisticStyleTransferStep
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
@@ -66,10 +66,13 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
                             videoUri = it
                         )
                     ) {
-                        VisionAi.setProcessor(TfLiteVideoProcessorImpl(application))
-                        loading_indicator.visibility = View.GONE
-                        request_preview.isEnabled = true
-                        request_processing.isEnabled = true
+                        VisionAi.addSteps(
+                            listOf(ArtisticStyleTransferStep(application))
+                        ) {
+                            loading_indicator.visibility = View.GONE
+                            request_preview.isEnabled = true
+                            request_processing.isEnabled = true
+                        }
                     }
                 }
             }

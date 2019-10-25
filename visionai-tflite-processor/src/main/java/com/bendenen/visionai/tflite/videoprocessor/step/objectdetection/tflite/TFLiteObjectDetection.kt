@@ -1,10 +1,10 @@
-package com.bendenen.visionai.tflite.tools.objectdetection.tflite
+package com.bendenen.visionai.tflite.videoprocessor.step.objectdetection.tflite
 
 import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.RectF
 import android.os.Trace
-import com.bendenen.visionai.tflite.tools.objectdetection.ObjectDetector
+import com.bendenen.visionai.tflite.videoprocessor.step.objectdetection.ObjectDetector
 import com.bendenen.visionai.tflite.utils.loadModelFile
 import org.tensorflow.lite.Interpreter
 import java.io.BufferedReader
@@ -66,7 +66,9 @@ class TFLiteObjectDetection private constructor() :
 
         // Show the best detections.
         // after scaling them back to the input size.
-        val recognitions = ArrayList<ObjectDetector.Recognition>(NUM_DETECTIONS)
+        val recognitions = ArrayList<ObjectDetector.Recognition>(
+            NUM_DETECTIONS
+        )
         for (i in 0 until NUM_DETECTIONS) {
             val detection = RectF(
                 outputLocations!![0][i][1] * inputSize,
@@ -140,7 +142,9 @@ class TFLiteObjectDetection private constructor() :
 
         // Show the best detections.
         // after scaling them back to the input size.
-        val recognitions = ArrayList<ObjectDetector.Recognition>(NUM_DETECTIONS)
+        val recognitions = ArrayList<ObjectDetector.Recognition>(
+            NUM_DETECTIONS
+        )
         for (i in 0 until NUM_DETECTIONS) {
             val detection = RectF(
                 outputLocations!![0][i][1] * inputSize,
@@ -204,7 +208,8 @@ class TFLiteObjectDetection private constructor() :
             inputSize: Int,
             isQuantized: Boolean
         ): ObjectDetector {
-            val d = TFLiteObjectDetection()
+            val d =
+                TFLiteObjectDetection()
 
             var labelsInput: InputStream? = null
             val actualFilename =
