@@ -41,7 +41,8 @@ dependencies {
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
     //Remote Configuration Project Module
-    implementation project(':visionai')
+    implementation project(':visionai-core')
+    implementation project(':visionai-tflite-processor')
 
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.core:core-ktx:1.2.0-alpha04'

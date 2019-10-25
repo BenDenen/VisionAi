@@ -8,14 +8,12 @@ import android.os.Bundle
 import android.provider.MediaStore
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.bendenen.visionai.videoprocessor.VideoProcessor
-import com.bendenen.visionai.videoprocessor.VideoProcessorListener
-import com.bendenen.visionai.videoprocessor.tflite.TfLiteVideoProcessorImpl
+import com.bendenen.visionai.VisionAi
+import com.bendenen.visionai.VisionAiConfig
+import com.bendenen.visionai.tflite.videoprocessor.TfLiteVideoProcessorImpl
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity(), VideoProcessorListener {
-
-    private lateinit var videoProcessor: VideoProcessor
+class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,19 +44,18 @@ class MainActivity : AppCompatActivity(), VideoProcessorListener {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 
         if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
-            if (::videoProcessor.isInitialized) {
-                videoProcessor.stop()
-            }
+            VisionAi.stop()
             data?.data?.let {
                 if (allPermissionsGranted()) {
-                    videoProcessor = TfLiteVideoProcessorImpl(
-                        application,
-                        FRAME_WIDTH,
-                        FRAME_HEIGHT,
-                        this,
-                        it
-                    )
-                    videoProcessor.start()
+                    VisionAi.init(
+                        VisionAiConfig(
+                            application = application,
+                            videoUri = it
+                        )
+                    ) {
+                        VisionAi.setProcessor(TfLiteVideoProcessorImpl(application))
+                        VisionAi.start(this)
+                    }
                 }
             }
 
@@ -69,16 +66,18 @@ class MainActivity : AppCompatActivity(), VideoProcessorListener {
     }
 
     override fun onPause() {
-        if (::videoProcessor.isInitialized) {
-            videoProcessor.stop()
-        }
+        VisionAi.stop()
         super.onPause()
     }
 
-    override fun onNewFrameProcessed(bitmap: Bitmap) {
+    override fun onFrameResult(bitmap: Bitmap) {
         runOnUiThread {
             input_surface.setImageBitmap(bitmap)
         }
+    }
+
+    override fun onFileResult(filePath: String) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     private fun allPermissionsGranted(): Boolean {
