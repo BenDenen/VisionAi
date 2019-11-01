@@ -1,9 +1,8 @@
-package com.bendenen.visionai.tflite.tools.styletransfer.tflite
+package com.bendenen.visionai.tflite.videoprocessor.step.styletransfer
 
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.util.Log
-import com.bendenen.visionai.tflite.tools.styletransfer.ArtisticStyleTransfer
 import com.bendenen.visionai.tflite.utils.NativeImageUtilsWrapper
 import com.bendenen.visionai.tflite.utils.loadModelFile
 import com.bendenen.visionai.tflite.utils.toNormalizedFloatByteBuffer
@@ -11,7 +10,7 @@ import org.tensorflow.lite.Interpreter
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class TFLiteArtisticStyleTransfer(
+class ArtisticStyleTransferImpl(
     context: Context
 ) : ArtisticStyleTransfer {
 
@@ -141,9 +140,9 @@ class TFLiteArtisticStyleTransfer(
 
         private const val TAG = "ArtisticStyleTransfer"
 
-        private const val STYLE_IMAGE_SIZE = 256
-        private const val CONTENT_IMAGE_SIZE = 384
-        private const val CHANNELS_NUM = 3
+        const val STYLE_IMAGE_SIZE = 256
+        const val CONTENT_IMAGE_SIZE = 384
+        const val CHANNELS_NUM = 3
 
         private val BOTTLE_NECK_SIZE = arrayOf(1, 1, 1, 100)
 

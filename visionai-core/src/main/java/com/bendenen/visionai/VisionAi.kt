@@ -5,6 +5,7 @@ import android.os.Environment
 import android.util.Log
 import com.bendenen.visionai.outputencoder.OutputEncoder
 import com.bendenen.visionai.outputencoder.mediamuxer.MediaMuxerOutputEncoderImpl
+import com.bendenen.visionai.videoprocessor.ProcessorStep
 import com.bendenen.visionai.videoprocessor.VideoProcessor
 import com.bendenen.visionai.videoprocessor.VideoProcessorListener
 import com.bendenen.visionai.videosource.MediaFileVideoSource
@@ -56,6 +57,7 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
             )
         }
 
+        videoProcessor = VideoProcessor()
         if (visionAiConfig.videoSource != null) {
             videoSource = visionAiConfig.videoSource
             initOutputEncoder()
@@ -76,15 +78,18 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
         videoSource.useBitmap(true)
     }
 
-    fun setProcessor(
-        videoProcessor: VideoProcessor
+    fun addSteps(
+        steps: List<ProcessorStep>,
+        resultCallback: () -> Unit
     ) {
-        this.videoProcessor = videoProcessor.also {
-            it.init(
-                videoSource.getSourceWidth(),
-                videoSource.getSourceHeight()
-            )
-            it.setListener(this)
+        assert(::videoProcessor.isInitialized)
+        assert(::videoSource.isInitialized)
+
+        launch {
+            videoProcessor.addSteps(steps)
+            videoProcessor.setListener(VisionAi)
+            videoProcessor.init(videoSource.getSourceWidth(), videoSource.getSourceHeight())
+            resultCallback.invoke()
         }
     }
 
