@@ -55,10 +55,10 @@ class ArtisticStyleTransferStep(
         }
     }
 
-    override  fun applyForData(bitmap: Bitmap): Bitmap =
+    override fun applyForData(bitmap: Bitmap): Bitmap =
         applyForData(bitmap.toByteArray(), bitmap.width, bitmap.height)
 
-    override  fun applyForData(rgbBytes: ByteArray, width: Int, height: Int): Bitmap {
+    override fun applyForData(rgbBytes: ByteArray, width: Int, height: Int): Bitmap {
         val result = artisticStyleTransfer.styleTransform(
             rgbBytes,
             width,

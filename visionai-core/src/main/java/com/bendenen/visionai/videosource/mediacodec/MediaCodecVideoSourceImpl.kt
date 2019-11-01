@@ -89,64 +89,65 @@ class MediaCodecVideoSourceImpl(
 
     // MediaFileVideoSource
 
-    suspend override fun loadVideoFile(uri: Uri) =
-        withContext(Dispatchers.IO) {
+    override suspend fun loadVideoFile(
+        uri: Uri
+    ) = withContext(Dispatchers.IO) {
 
-            extractor.setDataSource(
-                application, uri, null
-            )
-            videoUri = uri
+        extractor.setDataSource(
+            application, uri, null
+        )
+        videoUri = uri
 
-            val nTracks = extractor.trackCount
+        val nTracks = extractor.trackCount
 
-            // Begin by unselecting all of the tracks in the extractor, so we won't see
-            // any tracks that we haven't explicitly selected.
-            for (i in 0 until nTracks) {
-                extractor.unselectTrack(i)
-            }
+        // Begin by unselecting all of the tracks in the extractor, so we won't see
+        // any tracks that we haven't explicitly selected.
+        for (i in 0 until nTracks) {
+            extractor.unselectTrack(i)
+        }
 
-            // Find the first video track in the stream. In a real-world application
-            // it's possible that the stream would contain multiple tracks, but this
-            // sample assumes that we just want to play the first one.
-            for (i in 0 until nTracks) {
-                // Try to create a video codec for this track. This call will return null if the
-                // track is not a video track, or not a recognized video format. Once it returns
-                // a valid MediaCodecWrapper, we can break out of the loop.
+        // Find the first video track in the stream. In a real-world application
+        // it's possible that the stream would contain multiple tracks, but this
+        // sample assumes that we just want to play the first one.
+        for (i in 0 until nTracks) {
+            // Try to create a video codec for this track. This call will return null if the
+            // track is not a video track, or not a recognized video format. Once it returns
+            // a valid MediaCodecWrapper, we can break out of the loop.
 
-                val trackFormat = extractor.getTrackFormat(i)
+            val trackFormat = extractor.getTrackFormat(i)
 
-                val mimeType = trackFormat.getString(MediaFormat.KEY_MIME)
+            val mimeType = trackFormat.getString(MediaFormat.KEY_MIME)
 
-                if (mimeType.contains("video/")) {
+            if (mimeType.contains("video/")) {
 
-                    if (!::imageRender.isInitialized) {
-                        videoWidth = trackFormat.getInteger(MediaFormat.KEY_WIDTH)
-                        videoHeight = trackFormat.getInteger(MediaFormat.KEY_HEIGHT)
+                if (!::imageRender.isInitialized) {
+                    videoWidth = trackFormat.getInteger(MediaFormat.KEY_WIDTH)
+                    videoHeight = trackFormat.getInteger(MediaFormat.KEY_HEIGHT)
 
-                        Log.d(TAG, " videoWidth: $videoWidth  videoHeight: $videoHeight")
-                        Log.d(TAG, " trackFormat: $trackFormat")
+                    Log.d(TAG, " videoWidth: $videoWidth  videoHeight: $videoHeight")
+                    Log.d(TAG, " trackFormat: $trackFormat")
 
-                        imageRender = IntrinsicRenderScriptImageRender(
-                            RenderScript.create(application),
-                            Size(videoWidth, videoHeight)
-                        )
-                        imageRender.renderActionsListener = this@MediaCodecVideoSourceImpl
-                    }
-
-                    codecWrapper = MediaCodecHandler(
-                        trackFormat,
-                        imageRender.getSurface(),
-                        this@MediaCodecVideoSourceImpl
+                    imageRender = IntrinsicRenderScriptImageRender(
+                        RenderScript.create(application),
+                        Size(videoWidth, videoHeight)
                     )
-                    extractor.selectTrack(i)
-                    break
+                    imageRender.renderActionsListener = this@MediaCodecVideoSourceImpl
                 }
-            }
 
-            if (!::codecWrapper.isInitialized) {
-                throw IllegalArgumentException()
+                codecWrapper = MediaCodecHandler(
+                    trackFormat,
+                    imageRender.getSurface(),
+                    this@MediaCodecVideoSourceImpl
+                )
+                extractor.selectTrack(i)
+                break
             }
         }
+
+        if (!::codecWrapper.isInitialized) {
+            throw IllegalArgumentException()
+        }
+    }
 
     override suspend fun requestPreview(
         timestamp: Long

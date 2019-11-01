@@ -13,11 +13,11 @@ interface ProcessorStep {
         videoSourceHeight: Int
     )
 
-     fun applyForData(
+    fun applyForData(
         bitmap: Bitmap
     ): Bitmap
 
-     fun applyForData(
+    fun applyForData(
         rgbBytes: ByteArray,
         width: Int,
         height: Int
