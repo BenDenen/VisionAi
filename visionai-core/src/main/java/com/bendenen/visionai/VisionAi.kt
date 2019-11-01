@@ -63,14 +63,13 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
             initOutputEncoder()
             ready.invoke()
         } else if (visionAiConfig.videoUri != null && visionAiConfig.application != null) {
-            videoSource = MediaCodecVideoSourceImpl(visionAiConfig.application).also {
-                launch {
-                    it.loadVideoFile(
-                        visionAiConfig.videoUri
-                    )
-                    initOutputEncoder()
-                    ready.invoke()
-                }
+            videoSource = MediaCodecVideoSourceImpl(visionAiConfig.application)
+            launch {
+                (videoSource as MediaFileVideoSource).loadVideoFile(
+                    visionAiConfig.videoUri
+                )
+                initOutputEncoder()
+                ready.invoke()
             }
         } else {
             throw IllegalArgumentException(" Not enough information about video source ")

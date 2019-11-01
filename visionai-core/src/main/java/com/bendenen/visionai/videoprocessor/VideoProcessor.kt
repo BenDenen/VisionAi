@@ -85,14 +85,14 @@ class VideoProcessor : VideoSourceListener, CoroutineScope {
     }
 
     override fun onNewFrame(rgbBytes: ByteArray) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        // TODO: Implement for data
     }
 
     override fun onNewBitmap(bitmap: Bitmap) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        // TODO: Implement for data
     }
 
     override fun onFinish() {
-        // TODO: Finish
+        videoProcessorListener?.onFinish()
     }
 }

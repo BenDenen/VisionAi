@@ -115,6 +115,7 @@ class MediaMuxerOutputEncoderImpl : OutputEncoder {
             videoTrackIndex = mediaMuxer.addTrack(videoFormat)
             mediaMuxer.start()
             isMuxerStarted = true
+            Log.i(TAG, "isMuxerStarted $isMuxerStarted")
         } else if (encoderStatus == INFO_TRY_AGAIN_LATER) {
             Log.d(TAG, "no output from video encoder available")
         } else {
@@ -128,7 +129,7 @@ class MediaMuxerOutputEncoderImpl : OutputEncoder {
                 videoCodec.releaseOutputBuffer(encoderStatus, false)
                 encodedFrameCount++
             }
-            Log.i(TAG, "encoderOutputBuffer $encoderStatus was null")
+            Log.d(TAG, "encoderOutputBuffer $encoderStatus was null")
         }
     }
 
