@@ -7,11 +7,12 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.bendenen.visionai.VisionAi
 import com.bendenen.visionai.VisionAiConfig
-import com.bendenen.visionai.tflite.videoprocessor.step.styletransfer.ArtisticStyleTransferStep
+import com.bendenen.visionai.tflite.styletransfer.step.ArtisticStyleTransferStep
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
@@ -48,6 +49,7 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
             }
         }
         request_processing.setOnClickListener {
+            loading_indicator.visibility = View.VISIBLE
             request_preview.isEnabled = false
             VisionAi.start(this)
         }
@@ -67,7 +69,11 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
                         )
                     ) {
                         VisionAi.addSteps(
-                            listOf(ArtisticStyleTransferStep(application))
+                            listOf(
+                                ArtisticStyleTransferStep(
+                                    application
+                                )
+                            )
                         ) {
                             loading_indicator.visibility = View.GONE
                             request_preview.isEnabled = true
@@ -94,6 +100,8 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
 
     override fun onFileResult(filePath: String) {
         request_preview.isEnabled = true
+        loading_indicator.visibility = View.GONE
+        Toast.makeText(this, " File saved in the path $filePath", Toast.LENGTH_LONG).show()
     }
 
     private fun allPermissionsGranted(): Boolean {

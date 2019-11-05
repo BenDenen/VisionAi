@@ -139,5 +139,10 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
 
     override fun onFinish() {
         outputEncoder.finish()
+        resultListener?.let {
+            launch {
+                it.onFileResult(outputEncoder.getFilePath())
+            }
+        }
     }
 }

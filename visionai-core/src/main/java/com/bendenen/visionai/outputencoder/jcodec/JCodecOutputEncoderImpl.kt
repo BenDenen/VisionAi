@@ -14,7 +14,7 @@ import java.io.IOException
 
 class JCodecOutputEncoderImpl : OutputEncoder {
 
-    private var outputFile: File? = null
+    private lateinit var outputFilePath: String
 
     private var currentState = OutputEncoder.EncoderState.NOT_INITIALIZED
 
@@ -35,6 +35,7 @@ class JCodecOutputEncoderImpl : OutputEncoder {
         }
         try {
             outChannel = NIOUtils.writableFileChannel(outputFile.absolutePath)
+            outputFilePath = outputFile.absolutePath
             encoder = AndroidSequenceEncoder(outChannel, Rational.R(30, 1))
         } catch (ex: FileNotFoundException) {
             Log.e(TAG, "Can not initialize Encoder. File not found:  ", ex)
@@ -45,6 +46,11 @@ class JCodecOutputEncoderImpl : OutputEncoder {
         }
 
         currentState = OutputEncoder.EncoderState.INITIALIZED
+    }
+
+    override fun getFilePath(): String {
+        assert(::outputFilePath.isInitialized)
+        return outputFilePath
     }
 
     override fun encodeBitmap(bitmap: Bitmap) {
