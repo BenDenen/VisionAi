@@ -42,7 +42,7 @@ dependencies {
 
     //Remote Configuration Project Module
     implementation project(':visionai-core')
-    implementation project(':visionai-tflite-processor')
+    implementation project(':visionai-tflite-styletransfer')
 
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.core:core-ktx:1.2.0-alpha04'

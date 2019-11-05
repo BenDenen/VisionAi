@@ -6,6 +6,8 @@ import java.io.File
 
 interface OutputEncoder {
 
+    fun getFilePath() : String
+
     fun getEncoderState(): EncoderState
 
     @WorkerThread

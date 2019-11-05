@@ -32,6 +32,8 @@ class MediaMuxerOutputEncoderImpl : OutputEncoder {
     private var encodedFrameCount: Int = 0
     private var addedFrameCount: Int = 0
 
+    private lateinit var resultFilePath: String
+
     override fun initialize(
         outputFile: File,
         outputVideoWidth: Int,
@@ -39,13 +41,16 @@ class MediaMuxerOutputEncoderImpl : OutputEncoder {
     ) {
         val videoFormat =
             MediaFormat.createVideoFormat(MIMETYPE_VIDEO_AVC, outputVideoWidth, outputVideoHeight)
-        videoFormat.setInteger(KEY_BIT_RATE,
+        videoFormat.setInteger(
+            KEY_BIT_RATE,
             BIT_RATE
         )
-        videoFormat.setInteger(KEY_FRAME_RATE,
+        videoFormat.setInteger(
+            KEY_FRAME_RATE,
             FRAME_RATE
         )
-        videoFormat.setInteger(KEY_I_FRAME_INTERVAL,
+        videoFormat.setInteger(
+            KEY_I_FRAME_INTERVAL,
             I_FRAME_INTERVAL
         )
         videoFormat.setInteger(KEY_COLOR_FORMAT, COLOR_FormatYUV420Flexible)
@@ -54,8 +59,14 @@ class MediaMuxerOutputEncoderImpl : OutputEncoder {
 
         mediaMuxer =
             MediaMuxer(outputFile.absolutePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+        resultFilePath = outputFile.absolutePath
 
         currentState = OutputEncoder.EncoderState.INITIALIZED
+    }
+
+    override fun getFilePath(): String {
+        assert(::resultFilePath.isInitialized)
+        return resultFilePath
     }
 
     override fun getEncoderState(): OutputEncoder.EncoderState = currentState
