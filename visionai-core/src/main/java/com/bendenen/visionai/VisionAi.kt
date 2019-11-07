@@ -41,7 +41,7 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
 
     fun init(
         visionAiConfig: VisionAiConfig,
-        ready: () -> Unit
+        initHandler: () -> Unit
     ) {
 
         fun initOutputEncoder() {
@@ -61,35 +61,40 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
         if (visionAiConfig.videoSource != null) {
             videoSource = visionAiConfig.videoSource
             initOutputEncoder()
-            ready.invoke()
+            initHandler.invoke()
         } else if (visionAiConfig.videoUri != null && visionAiConfig.application != null) {
+
             videoSource = MediaCodecVideoSourceImpl(visionAiConfig.application)
             launch {
                 (videoSource as MediaFileVideoSource).loadVideoFile(
                     visionAiConfig.videoUri
                 )
                 initOutputEncoder()
-                ready.invoke()
+                initHandler.invoke()
             }
         } else {
             throw IllegalArgumentException(" Not enough information about video source ")
         }
         videoSource.useBitmap(true)
+        videoProcessor.setListener(VisionAi)
     }
 
-    fun addSteps(
-        steps: List<ProcessorStep>,
-        resultCallback: () -> Unit
+    fun setSteps(
+        steps: List<ProcessorStep>
     ) {
         assert(::videoProcessor.isInitialized)
         assert(::videoSource.isInitialized)
 
-        launch {
-            videoProcessor.addSteps(steps)
-            videoProcessor.setListener(VisionAi)
-            videoProcessor.init(videoSource.getSourceWidth(), videoSource.getSourceHeight())
-            resultCallback.invoke()
+        var width = videoSource.getSourceWidth()
+        var height = videoSource.getSourceHeight()
+
+        for (step in steps) {
+            step.init(width, height)
+            width = step.getWidthForNextStep()
+            height = step.getHeightForNextStep()
         }
+
+        videoProcessor.setSteps(steps)
     }
 
     @Throws(IllegalArgumentException::class, AssertionError::class)

@@ -5,6 +5,8 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Matrix
 import com.bendenen.visionai.tflite.styletransfer.ArtisticStyleTransferImpl
+import com.bendenen.visionai.tflite.styletransfer.Gallery
+import com.bendenen.visionai.tflite.styletransfer.Style
 import com.bendenen.visionai.videoprocessor.ProcessorStep
 import com.bendenen.visionai.visionai.shared.utils.getTransformationMatrix
 import com.bendenen.visionai.visionai.shared.utils.toBitmap
@@ -12,7 +14,7 @@ import com.bendenen.visionai.visionai.shared.utils.toByteArray
 
 class ArtisticStyleTransferStep(
     context: Context,
-    styleFilePath: String = "test_style.jpeg"
+    style: Style = Gallery.FLOWERS.style
 ) : ProcessorStep {
 
     private lateinit var finalImage: Bitmap
@@ -21,7 +23,8 @@ class ArtisticStyleTransferStep(
     private val artisticStyleTransfer = ArtisticStyleTransferImpl(
         context
     ).also {
-        it.setStyleImage(styleFilePath)
+        it.setStyle(style)
+
     }
 
     override fun getWidthForNextStep(): Int {
@@ -34,7 +37,7 @@ class ArtisticStyleTransferStep(
         return finalImage.height
     }
 
-    override suspend fun init(
+    override fun init(
         videoSourceWidth: Int,
         videoSourceHeight: Int
     ) {

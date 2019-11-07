@@ -68,17 +68,16 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
                             videoUri = it
                         )
                     ) {
-                        VisionAi.addSteps(
+                        VisionAi.setSteps(
                             listOf(
                                 ArtisticStyleTransferStep(
                                     application
                                 )
                             )
-                        ) {
-                            loading_indicator.visibility = View.GONE
-                            request_preview.isEnabled = true
-                            request_processing.isEnabled = true
-                        }
+                        )
+                        loading_indicator.visibility = View.GONE
+                        request_preview.isEnabled = true
+                        request_processing.isEnabled = true
                     }
                 }
             }

@@ -51,11 +51,12 @@ class ArtisticStyleTransferImpl(
         }
     }
 
-    override fun setStyleImage(styleImagePath: String) {
-        if (styleImagePath.isEmpty()) {
-            Log.e(TAG, "Style image can not be empty")
-            return
+    override fun setStyle(style: Style) {
+        when (style) {
+            is Style.AssetStyle -> styleImagePath = style.styleFileName
+            else -> throw IllegalArgumentException("Unknown style type ${style.javaClass.simpleName}")
         }
+
         updateBottleNeck = true
         bottleNeckBuffer =
             Array(BOTTLE_NECK_SIZE[0]) {
@@ -67,7 +68,6 @@ class ArtisticStyleTransferImpl(
                     }
                 }
             }
-        this.styleImagePath = styleImagePath
     }
 
     override fun styleTransform(
@@ -82,6 +82,7 @@ class ArtisticStyleTransferImpl(
         if (updateBottleNeck) {
             // TODO: Check all available storage of Style images
             val bitmap = BitmapFactory.decodeStream(assetManager.open(styleImagePath))
+
             val imageStyleData =
                 ByteBuffer.allocateDirect(1 * STYLE_IMAGE_SIZE * STYLE_IMAGE_SIZE * CHANNELS_NUM * 4)
             imageStyleData.order(ByteOrder.nativeOrder())

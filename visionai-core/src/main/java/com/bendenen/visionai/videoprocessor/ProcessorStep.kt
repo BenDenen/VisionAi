@@ -8,7 +8,7 @@ interface ProcessorStep {
 
     fun getHeightForNextStep(): Int
 
-    suspend fun init(
+    fun init(
         videoSourceWidth: Int,
         videoSourceHeight: Int
     )

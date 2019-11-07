@@ -22,29 +22,13 @@ class VideoProcessor : VideoSourceListener, CoroutineScope {
         steps.add(processorStep)
     }
 
-    fun addSteps(processorSteps: List<ProcessorStep>) {
+    fun setSteps(processorSteps: List<ProcessorStep>) {
+        steps.clear()
         steps.addAll(processorSteps)
     }
 
     internal fun setListener(videoProcessorListener: VideoProcessorListener) {
         this.videoProcessorListener = videoProcessorListener
-    }
-
-    suspend fun init(
-        videoSourceWidth: Int,
-        videoSourceHeight: Int
-    ) {
-
-        withContext(coroutineContext) {
-            var width = videoSourceWidth
-            var height = videoSourceHeight
-
-            for (step in steps) {
-                step.init(width, height)
-                width = step.getWidthForNextStep()
-                height = step.getHeightForNextStep()
-            }
-        }
     }
 
     suspend fun applyForData(

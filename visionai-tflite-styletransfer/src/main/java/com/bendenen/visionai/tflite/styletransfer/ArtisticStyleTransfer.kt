@@ -4,7 +4,7 @@ import androidx.annotation.WorkerThread
 
 interface ArtisticStyleTransfer {
 
-    fun setStyleImage(styleImagePath: String)
+    fun setStyle(style: Style)
 
     @WorkerThread
     fun styleTransform(
