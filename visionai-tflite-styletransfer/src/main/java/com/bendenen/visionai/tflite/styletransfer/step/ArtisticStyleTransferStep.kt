@@ -2,10 +2,11 @@ package com.bendenen.visionai.tflite.styletransfer.step
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Matrix
+import android.graphics.Paint
 import com.bendenen.visionai.tflite.styletransfer.ArtisticStyleTransferImpl
-import com.bendenen.visionai.tflite.styletransfer.Gallery
 import com.bendenen.visionai.tflite.styletransfer.Style
 import com.bendenen.visionai.videoprocessor.ProcessorStep
 import com.bendenen.visionai.visionai.shared.utils.getTransformationMatrix
@@ -14,16 +15,28 @@ import com.bendenen.visionai.visionai.shared.utils.toByteArray
 
 class ArtisticStyleTransferStep(
     context: Context,
-    style: Style = Gallery.FLOWERS.style
+    val style: Style
 ) : ProcessorStep {
 
     private lateinit var finalImage: Bitmap
+    private var croppedImage = Bitmap.createBitmap(
+        ArtisticStyleTransferImpl.CONTENT_IMAGE_SIZE,
+        ArtisticStyleTransferImpl.CONTENT_IMAGE_SIZE,
+        Bitmap.Config.ARGB_8888
+    )
     private lateinit var frameToCropTransform: Matrix
     private lateinit var cropToFrameTransform: Matrix
     private val artisticStyleTransfer = ArtisticStyleTransferImpl(
         context
     ).also {
-        it.setStyle(style)
+        when (style) {
+            is Style.AssetStyle -> {
+
+                val styleBitmap =
+                    BitmapFactory.decodeStream(context.assets.open(style.styleFileName))
+                it.setStyle(styleBitmap)
+            }
+        }
 
     }
 
@@ -59,17 +72,37 @@ class ArtisticStyleTransferStep(
         }
     }
 
-    override fun applyForData(bitmap: Bitmap): Bitmap =
-        applyForData(bitmap.toByteArray(), bitmap.width, bitmap.height)
+    override fun applyForData(bitmap: Bitmap): Bitmap {
 
-    override fun applyForData(rgbBytes: ByteArray, width: Int, height: Int): Bitmap {
+        val croppedCanvas = Canvas(croppedImage)
+        croppedCanvas.drawBitmap(bitmap, frameToCropTransform, null)
+
+        val styledBitmap =
+            applyForData(croppedImage.toByteArray(), croppedImage.width, croppedImage.height)
+
+        val finalBitmapCanvas = Canvas(finalImage)
+
+        val blendMode = style.blendMode
+        if (blendMode != null) {
+            finalBitmapCanvas.drawBitmap(bitmap, Matrix(), null)
+            finalBitmapCanvas.drawBitmap(styledBitmap, cropToFrameTransform, Paint().also {
+                it.blendMode = blendMode
+            })
+        } else {
+            finalBitmapCanvas.drawBitmap(styledBitmap, cropToFrameTransform, null)
+        }
+
+
+
+        return finalImage
+    }
+
+    private fun applyForData(rgbBytes: ByteArray, width: Int, height: Int): Bitmap {
         val result = artisticStyleTransfer.styleTransform(
             rgbBytes,
             width,
             height
         )
-        val finalBitmapCanvas = Canvas(finalImage)
-        finalBitmapCanvas.drawBitmap(result.toBitmap(), cropToFrameTransform, null)
-        return finalImage
+        return result.toBitmap()
     }
 }

@@ -3,13 +3,14 @@ package com.bendenen.tfliteexample
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import com.bendenen.tfliteexample.selectstyle.SelectStyleActivity
 import com.bendenen.visionai.VisionAi
 import com.bendenen.visionai.VisionAiConfig
 import com.bendenen.visionai.tflite.styletransfer.step.ArtisticStyleTransferStep
@@ -26,10 +27,17 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
             return
         }
 
+        select_style_effect.setOnClickListener {
+            startActivityForResult(
+                SelectStyleActivity.getStartIntent(this),
+                REQUEST_SELECT_STYLE_CODE
+            )
+        }
+
         record_video_button.setOnClickListener {
             Intent(MediaStore.ACTION_VIDEO_CAPTURE).also { takeVideoIntent ->
                 takeVideoIntent.resolveActivity(packageManager)?.also {
-                    startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE)
+                    startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE_CODE)
                 }
             }
         }
@@ -39,7 +47,7 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
                 MediaStore.Video.Media.EXTERNAL_CONTENT_URI
             )
 
-            startActivityForResult(galleryIntent, REQUEST_VIDEO_CAPTURE)
+            startActivityForResult(galleryIntent, REQUEST_VIDEO_CAPTURE_CODE)
         }
         request_preview.setOnClickListener {
             loading_indicator.visibility = View.VISIBLE
@@ -49,7 +57,7 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
             }
         }
         request_processing.setOnClickListener {
-            loading_indicator.visibility = View.VISIBLE
+            video_processing_progress.visibility = View.VISIBLE
             request_preview.isEnabled = false
             VisionAi.start(this)
         }
@@ -57,7 +65,7 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
 
-        if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
+        if (requestCode == REQUEST_VIDEO_CAPTURE_CODE && resultCode == RESULT_OK) {
             VisionAi.stop()
             data?.data?.let {
                 if (allPermissionsGranted()) {
@@ -68,13 +76,6 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
                             videoUri = it
                         )
                     ) {
-                        VisionAi.setSteps(
-                            listOf(
-                                ArtisticStyleTransferStep(
-                                    application
-                                )
-                            )
-                        )
                         loading_indicator.visibility = View.GONE
                         request_preview.isEnabled = true
                         request_processing.isEnabled = true
@@ -83,6 +84,23 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
             }
 
             return
+        }
+        if (requestCode == REQUEST_SELECT_STYLE_CODE && resultCode == RESULT_OK) {
+
+            data?.let {
+                val style = SelectStyleActivity.getStyleFromData(data)
+                style?.let {
+                    VisionAi.setSteps(
+                        listOf(
+                            ArtisticStyleTransferStep(
+                                this,
+                                style
+                            )
+                        )
+
+                    )
+                }
+            }
         }
 
         super.onActivityResult(requestCode, resultCode, data)
@@ -99,8 +117,14 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
 
     override fun onFileResult(filePath: String) {
         request_preview.isEnabled = true
-        loading_indicator.visibility = View.GONE
-        Toast.makeText(this, " File saved in the path $filePath", Toast.LENGTH_LONG).show()
+        video_processing_progress.visibility = View.GONE
+        play_button.visibility = View.VISIBLE
+
+        play_button.setOnClickListener {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(filePath))
+            intent.setDataAndType(Uri.parse(filePath), "video/mp4")
+            startActivity(intent)
+        }
     }
 
     private fun allPermissionsGranted(): Boolean {
@@ -133,7 +157,8 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
     companion object {
         private const val PERMISSIONS_REQUEST_CODE = 1
 
-        private const val REQUEST_VIDEO_CAPTURE = 11
+        private const val REQUEST_VIDEO_CAPTURE_CODE = 11
+        private const val REQUEST_SELECT_STYLE_CODE = 12
 
         // Work resolution
         private const val FRAME_WIDTH = 640

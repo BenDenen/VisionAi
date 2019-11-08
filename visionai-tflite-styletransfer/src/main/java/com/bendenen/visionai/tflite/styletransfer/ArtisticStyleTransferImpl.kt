@@ -1,7 +1,7 @@
 package com.bendenen.visionai.tflite.styletransfer
 
 import android.content.Context
-import android.graphics.BitmapFactory
+import android.graphics.Bitmap
 import android.util.Log
 import com.bendenen.visionai.visionai.shared.utils.NativeImageUtilsWrapper
 import com.bendenen.visionai.visionai.shared.utils.loadModelFile
@@ -26,7 +26,7 @@ class ArtisticStyleTransferImpl(
     }
 
     private lateinit var bottleNeckBuffer: Array<Array<Array<FloatArray>>>
-    private lateinit var styleImagePath: String
+    private lateinit var styleBitmap: Bitmap
     private var updateBottleNeck = true
 
     private val contentImageFloatArrayBuffer by lazy {
@@ -51,13 +51,9 @@ class ArtisticStyleTransferImpl(
         }
     }
 
-    override fun setStyle(style: Style) {
-        when (style) {
-            is Style.AssetStyle -> styleImagePath = style.styleFileName
-            else -> throw IllegalArgumentException("Unknown style type ${style.javaClass.simpleName}")
-        }
-
+    override fun setStyle(styleBitmap: Bitmap) {
         updateBottleNeck = true
+        this.styleBitmap = styleBitmap
         bottleNeckBuffer =
             Array(BOTTLE_NECK_SIZE[0]) {
                 Array(BOTTLE_NECK_SIZE[1]) {
@@ -80,13 +76,10 @@ class ArtisticStyleTransferImpl(
         val startTime = System.currentTimeMillis()
 
         if (updateBottleNeck) {
-            // TODO: Check all available storage of Style images
-            val bitmap = BitmapFactory.decodeStream(assetManager.open(styleImagePath))
-
             val imageStyleData =
                 ByteBuffer.allocateDirect(1 * STYLE_IMAGE_SIZE * STYLE_IMAGE_SIZE * CHANNELS_NUM * 4)
             imageStyleData.order(ByteOrder.nativeOrder())
-            bitmap.toNormalizedFloatByteBuffer(
+            styleBitmap.toNormalizedFloatByteBuffer(
                 imageStyleData,
                 STYLE_IMAGE_SIZE,
                 IMAGE_MEAN

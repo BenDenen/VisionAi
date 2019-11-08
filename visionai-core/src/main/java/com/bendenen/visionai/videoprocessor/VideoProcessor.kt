@@ -33,34 +33,17 @@ class VideoProcessor : VideoSourceListener, CoroutineScope {
 
     suspend fun applyForData(
         bitmap: Bitmap
-    ): Bitmap =
-
-        withContext(coroutineContext) {
-            var result = bitmap
-            for (step in steps) {
-                result = step.applyForData(result)
-            }
-
-            return@withContext result
-        }
-
-    suspend fun applyForData(
-        rgbBytes: ByteArray,
-        width: Int,
-        height: Int
     ): Bitmap = withContext(coroutineContext) {
-
-        var result = steps[0].applyForData(rgbBytes, width, height)
-
-        for (index in 1 until steps.size) {
-            result = steps[index].applyForData(result)
+        var result = bitmap
+        for (step in steps) {
+            result = step.applyForData(result)
         }
 
         return@withContext result
     }
 
     override fun onNewData(rgbBytes: ByteArray, bitmap: Bitmap) {
-        var result = steps[0].applyForData(rgbBytes, bitmap.width, bitmap.height)
+        var result = steps[0].applyForData(bitmap)
 
         for (index in 1 until steps.size) {
             result = steps[index].applyForData(result)

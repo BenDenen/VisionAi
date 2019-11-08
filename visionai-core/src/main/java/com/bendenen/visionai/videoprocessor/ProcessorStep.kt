@@ -17,9 +17,4 @@ interface ProcessorStep {
         bitmap: Bitmap
     ): Bitmap
 
-    fun applyForData(
-        rgbBytes: ByteArray,
-        width: Int,
-        height: Int
-    ): Bitmap
 }
