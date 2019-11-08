@@ -3,20 +3,29 @@ package com.bendenen.tfliteexample
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.BlendMode
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.bendenen.tfliteexample.selectstyle.SelectStyleActivity
 import com.bendenen.visionai.VisionAi
 import com.bendenen.visionai.VisionAiConfig
 import com.bendenen.visionai.tflite.styletransfer.step.ArtisticStyleTransferStep
+import com.bendenen.visionai.tflite.styletransfer.step.SourcesOrder
+import com.bendenen.visionai.tflite.styletransfer.step.Style
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
+
+    private var selectedStyle: Style? = null
+    private var selectedBlendMode: BlendMode? = null
+    private var selectedSourceOrder: SourcesOrder = SourcesOrder.FORWARD
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,6 +35,8 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
             requestPermissions(getRequiredPermissions(), PERMISSIONS_REQUEST_CODE)
             return
         }
+
+        setUpSelectMode()
 
         select_style_effect.setOnClickListener {
             startActivityForResult(
@@ -51,6 +62,19 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
         }
         request_preview.setOnClickListener {
             loading_indicator.visibility = View.VISIBLE
+            selectedStyle?.let {
+                VisionAi.setSteps(
+                    listOf(
+                        ArtisticStyleTransferStep(
+                            this,
+                            it,
+                            selectedBlendMode,
+                            selectedSourceOrder
+                        )
+                    )
+
+                )
+            }
             VisionAi.requestPreview(1000) {
                 input_surface.setImageBitmap(it)
                 loading_indicator.visibility = View.GONE
@@ -61,6 +85,18 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
             request_preview.isEnabled = false
             VisionAi.start(this)
         }
+        select_order.setOnClickListener {
+            when (selectedSourceOrder) {
+                SourcesOrder.FORWARD -> {
+                    selectedSourceOrder = SourcesOrder.BACKWARD
+                }
+                SourcesOrder.BACKWARD -> {
+                    selectedSourceOrder = SourcesOrder.FORWARD
+                }
+            }
+            selected_order.text = selectedSourceOrder.name
+        }
+        selected_order.text = selectedSourceOrder.name
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -88,18 +124,7 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
         if (requestCode == REQUEST_SELECT_STYLE_CODE && resultCode == RESULT_OK) {
 
             data?.let {
-                val style = SelectStyleActivity.getStyleFromData(data)
-                style?.let {
-                    VisionAi.setSteps(
-                        listOf(
-                            ArtisticStyleTransferStep(
-                                this,
-                                style
-                            )
-                        )
-
-                    )
-                }
+                selectedStyle = SelectStyleActivity.getStyleFromData(data)
             }
         }
 
@@ -124,6 +149,27 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(filePath))
             intent.setDataAndType(Uri.parse(filePath), "video/mp4")
             startActivity(intent)
+        }
+    }
+
+    private fun setUpSelectMode() {
+        val items = BlendMode.values().map { it.name }.toMutableList()
+        items.add(0,"OFF")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, items)
+        select_mode_spinner.adapter = adapter
+        select_mode_spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+                selectedBlendMode = null
+            }
+
+            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
+                if(p2 == 0) {
+                    selectedBlendMode = null
+                    return
+                }
+                selectedBlendMode = BlendMode.values()[p2-1]
+            }
         }
     }
 

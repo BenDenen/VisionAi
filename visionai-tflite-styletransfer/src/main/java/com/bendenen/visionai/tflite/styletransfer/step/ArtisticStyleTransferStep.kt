@@ -3,11 +3,11 @@ package com.bendenen.visionai.tflite.styletransfer.step
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.BlendMode
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
 import com.bendenen.visionai.tflite.styletransfer.ArtisticStyleTransferImpl
-import com.bendenen.visionai.tflite.styletransfer.Style
 import com.bendenen.visionai.videoprocessor.ProcessorStep
 import com.bendenen.visionai.visionai.shared.utils.getTransformationMatrix
 import com.bendenen.visionai.visionai.shared.utils.toBitmap
@@ -15,7 +15,9 @@ import com.bendenen.visionai.visionai.shared.utils.toByteArray
 
 class ArtisticStyleTransferStep(
     context: Context,
-    val style: Style
+    style: Style,
+    private val blendMode: BlendMode? = null,
+    private val sourcesOrder: SourcesOrder = SourcesOrder.FORWARD
 ) : ProcessorStep {
 
     private lateinit var finalImage: Bitmap
@@ -82,12 +84,22 @@ class ArtisticStyleTransferStep(
 
         val finalBitmapCanvas = Canvas(finalImage)
 
-        val blendMode = style.blendMode
+        val blendMode = blendMode
         if (blendMode != null) {
-            finalBitmapCanvas.drawBitmap(bitmap, Matrix(), null)
-            finalBitmapCanvas.drawBitmap(styledBitmap, cropToFrameTransform, Paint().also {
-                it.blendMode = blendMode
-            })
+            when (sourcesOrder) {
+                SourcesOrder.FORWARD -> {
+                    finalBitmapCanvas.drawBitmap(bitmap, Matrix(), null)
+                    finalBitmapCanvas.drawBitmap(styledBitmap, cropToFrameTransform, Paint().also {
+                        it.blendMode = blendMode
+                    })
+                }
+                SourcesOrder.BACKWARD -> {
+                    finalBitmapCanvas.drawBitmap(styledBitmap, cropToFrameTransform, null)
+                    finalBitmapCanvas.drawBitmap(bitmap, Matrix(), Paint().also {
+                        it.blendMode = blendMode
+                    })
+                }
+            }
         } else {
             finalBitmapCanvas.drawBitmap(styledBitmap, cropToFrameTransform, null)
         }

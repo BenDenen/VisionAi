@@ -6,8 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bendenen.tfliteexample.R
-import com.bendenen.visionai.tflite.styletransfer.Gallery
-import com.bendenen.visionai.tflite.styletransfer.Style
+import com.bendenen.visionai.tflite.styletransfer.step.Gallery
+import com.bendenen.visionai.tflite.styletransfer.step.Style
 import kotlinx.android.synthetic.main.item_style.view.*
 
 class StyleListAdapter(

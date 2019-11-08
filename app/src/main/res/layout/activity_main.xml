@@ -17,6 +17,37 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+    <Spinner
+            android:id="@+id/select_mode_spinner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:drawable/btn_dropdown"
+            app:layout_constraintStart_toEndOf="@+id/select_style_effect"
+            app:layout_constraintTop_toTopOf="@+id/select_style_effect"
+            app:layout_constraintBottom_toBottomOf="@+id/select_style_effect"
+            android:spinnerMode="dropdown"/>
+
+    <ImageButton
+            android:id="@+id/select_order"
+            android:contentDescription="@string/select_style"
+            android:layout_width="@dimen/button_size"
+            android:layout_height="@dimen/button_size"
+            android:padding="@dimen/small_padding"
+            android:src="@drawable/ic_autorenew_black_24dp"
+            android:layout_margin="@dimen/small_margin"
+            app:layout_constraintStart_toEndOf="@+id/select_mode_spinner"
+            app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+            android:id="@+id/selected_order"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/small_margin"
+            app:layout_constraintStart_toEndOf="@+id/select_order"
+            app:layout_constraintTop_toTopOf="@+id/select_order"
+            app:layout_constraintBottom_toBottomOf="@+id/select_order"
+            tools:text="FORWARD"
+            />
+
     <ImageButton
             android:id="@+id/record_video_button"
             android:contentDescription="@string/record_video"
