@@ -67,9 +67,12 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
                     listOf(
                         ArtisticStyleTransferStep(
                             this,
-                            it,
-                            selectedBlendMode,
-                            selectedSourceOrder
+                            ArtisticStyleTransferStep.Config(
+                                it,
+                                selectedBlendMode,
+                                selectedSourceOrder,
+                                150
+                            )
                         )
                     )
 
@@ -83,7 +86,24 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
         request_processing.setOnClickListener {
             video_processing_progress.visibility = View.VISIBLE
             request_preview.isEnabled = false
-            VisionAi.start(this)
+            selectedStyle?.let {
+                VisionAi.setSteps(
+                    listOf(
+                        ArtisticStyleTransferStep(
+                            this,
+                            ArtisticStyleTransferStep.Config(
+                                it,
+                                selectedBlendMode,
+                                selectedSourceOrder,
+                                150
+                            )
+                        )
+                    )
+
+                )
+                VisionAi.start(this)
+            }
+
         }
         select_order.setOnClickListener {
             when (selectedSourceOrder) {
@@ -154,7 +174,7 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
 
     private fun setUpSelectMode() {
         val items = BlendMode.values().map { it.name }.toMutableList()
-        items.add(0,"OFF")
+        items.add(0, "OFF")
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, items)
         select_mode_spinner.adapter = adapter
         select_mode_spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -164,11 +184,11 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
             }
 
             override fun onItemSelected(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
-                if(p2 == 0) {
+                if (p2 == 0) {
                     selectedBlendMode = null
                     return
                 }
-                selectedBlendMode = BlendMode.values()[p2-1]
+                selectedBlendMode = BlendMode.values()[p2 - 1]
             }
         }
     }
@@ -205,9 +225,5 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
 
         private const val REQUEST_VIDEO_CAPTURE_CODE = 11
         private const val REQUEST_SELECT_STYLE_CODE = 12
-
-        // Work resolution
-        private const val FRAME_WIDTH = 640
-        private const val FRAME_HEIGHT = 480
     }
 }

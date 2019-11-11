@@ -15,9 +15,7 @@ import com.bendenen.visionai.visionai.shared.utils.toByteArray
 
 class ArtisticStyleTransferStep(
     context: Context,
-    style: Style,
-    private val blendMode: BlendMode? = null,
-    private val sourcesOrder: SourcesOrder = SourcesOrder.FORWARD
+    val config: Config
 ) : ProcessorStep {
 
     private lateinit var finalImage: Bitmap
@@ -31,11 +29,11 @@ class ArtisticStyleTransferStep(
     private val artisticStyleTransfer = ArtisticStyleTransferImpl(
         context
     ).also {
-        when (style) {
+        when (config.style) {
             is Style.AssetStyle -> {
 
                 val styleBitmap =
-                    BitmapFactory.decodeStream(context.assets.open(style.styleFileName))
+                    BitmapFactory.decodeStream(context.assets.open(config.style.styleFileName))
                 it.setStyle(styleBitmap)
             }
         }
@@ -84,19 +82,21 @@ class ArtisticStyleTransferStep(
 
         val finalBitmapCanvas = Canvas(finalImage)
 
-        val blendMode = blendMode
+        val blendMode = config.blendMode
         if (blendMode != null) {
-            when (sourcesOrder) {
+            when (config.sourcesOrder) {
                 SourcesOrder.FORWARD -> {
                     finalBitmapCanvas.drawBitmap(bitmap, Matrix(), null)
                     finalBitmapCanvas.drawBitmap(styledBitmap, cropToFrameTransform, Paint().also {
                         it.blendMode = blendMode
+                        it.alpha = config.maskAlpha
                     })
                 }
                 SourcesOrder.BACKWARD -> {
                     finalBitmapCanvas.drawBitmap(styledBitmap, cropToFrameTransform, null)
                     finalBitmapCanvas.drawBitmap(bitmap, Matrix(), Paint().also {
                         it.blendMode = blendMode
+                        it.alpha = config.maskAlpha
                     })
                 }
             }
@@ -117,4 +117,12 @@ class ArtisticStyleTransferStep(
         )
         return result.toBitmap()
     }
+
+    data class Config(
+        val style: Style,
+        val blendMode: BlendMode? = null,
+        val sourcesOrder: SourcesOrder = SourcesOrder.FORWARD,
+        val maskAlpha: Int = 255
+
+    )
 }
