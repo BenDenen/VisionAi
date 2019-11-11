@@ -117,6 +117,10 @@ class ArtisticStyleTransferImpl(
         return finalImageData
     }
 
+    override fun getStyleImageSize(): Int = STYLE_IMAGE_SIZE
+
+    override fun getContentImageSize(): Int = CONTENT_IMAGE_SIZE
+
     override fun close() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
@@ -132,8 +136,8 @@ class ArtisticStyleTransferImpl(
 
         private const val TAG = "ArtisticStyleTransfer"
 
-        const val STYLE_IMAGE_SIZE = 256
-        const val CONTENT_IMAGE_SIZE = 384
+        private const val STYLE_IMAGE_SIZE = 256
+        private const val CONTENT_IMAGE_SIZE = 384
         const val CHANNELS_NUM = 3
 
         private val BOTTLE_NECK_SIZE = arrayOf(1, 1, 1, 100)

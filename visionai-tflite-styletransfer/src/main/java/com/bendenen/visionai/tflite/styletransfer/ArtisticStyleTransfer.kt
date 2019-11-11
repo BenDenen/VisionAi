@@ -14,5 +14,9 @@ interface ArtisticStyleTransfer {
         imageHeight: Int
     ): Array<Array<Array<FloatArray>>>
 
+    fun getStyleImageSize(): Int
+
+    fun getContentImageSize(): Int
+
     fun close()
 }

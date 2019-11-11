@@ -1,9 +1,15 @@
 package com.bendenen.visionai.tflite.styletransfer.step
 
+import android.net.Uri
+
 sealed class Style {
 
     data class AssetStyle(
         val styleFileName: String
+    ) : Style()
+
+    data class PhotoUriStyle(
+        val styleFileUri: Uri
     ) : Style()
 }
 

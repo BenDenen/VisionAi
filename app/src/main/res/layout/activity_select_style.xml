@@ -16,5 +16,16 @@
             app:layout_constraintBottom_toBottomOf="parent"
             tools:listitem="@layout/item_style"/>
 
+    <ImageButton
+            android:id="@+id/get_custom_image"
+            android:src="@drawable/ic_photo_library_black_24dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:padding="@dimen/small_padding"
+            android:layout_margin="@dimen/small_margin"/>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

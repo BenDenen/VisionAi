@@ -7,6 +7,7 @@ import android.graphics.BlendMode
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
+import com.bendenen.visionai.tflite.styletransfer.ArtisticStyleTransfer
 import com.bendenen.visionai.tflite.styletransfer.ArtisticStyleTransferImpl
 import com.bendenen.visionai.videoprocessor.ProcessorStep
 import com.bendenen.visionai.visionai.shared.utils.getTransformationMatrix
@@ -15,29 +16,64 @@ import com.bendenen.visionai.visionai.shared.utils.toByteArray
 
 class ArtisticStyleTransferStep(
     context: Context,
-    val config: Config
+    private val config: Config
 ) : ProcessorStep {
 
+    private val artisticStyleTransfer: ArtisticStyleTransfer
+    private var croppedImage: Bitmap
+
     private lateinit var finalImage: Bitmap
-    private var croppedImage = Bitmap.createBitmap(
-        ArtisticStyleTransferImpl.CONTENT_IMAGE_SIZE,
-        ArtisticStyleTransferImpl.CONTENT_IMAGE_SIZE,
-        Bitmap.Config.ARGB_8888
-    )
     private lateinit var frameToCropTransform: Matrix
     private lateinit var cropToFrameTransform: Matrix
-    private val artisticStyleTransfer = ArtisticStyleTransferImpl(
-        context
-    ).also {
+
+    init {
+        artisticStyleTransfer = ArtisticStyleTransferImpl(
+            context
+        )
+        croppedImage = Bitmap.createBitmap(
+            artisticStyleTransfer.getContentImageSize(),
+            artisticStyleTransfer.getContentImageSize(),
+            Bitmap.Config.ARGB_8888
+        )
+        val styleBitmap: Bitmap
         when (config.style) {
             is Style.AssetStyle -> {
-
-                val styleBitmap =
+                styleBitmap =
                     BitmapFactory.decodeStream(context.assets.open(config.style.styleFileName))
-                it.setStyle(styleBitmap)
             }
+            is Style.PhotoUriStyle -> {
+                val inputStream =
+                    context.contentResolver.openInputStream(config.style.styleFileUri)!!
+                styleBitmap = BitmapFactory.decodeStream(inputStream)
+            }
+            else -> throw IllegalArgumentException("Unknown Style type : ${config.style::class.java.simpleName}")
         }
 
+
+        if ((styleBitmap.width != artisticStyleTransfer.getStyleImageSize())
+            || (styleBitmap.height != artisticStyleTransfer.getStyleImageSize())
+        ) {
+            val transform = getTransformationMatrix(
+                styleBitmap.width,
+                styleBitmap.height,
+                artisticStyleTransfer.getContentImageSize(),
+                artisticStyleTransfer.getContentImageSize(),
+                0,
+                false
+            )
+
+            val finalBitmap = Bitmap.createBitmap(
+                artisticStyleTransfer.getStyleImageSize(),
+                artisticStyleTransfer.getStyleImageSize(),
+                Bitmap.Config.ARGB_8888
+            )
+
+            val croppedCanvas = Canvas(finalBitmap)
+            croppedCanvas.drawBitmap(styleBitmap, transform, null)
+            artisticStyleTransfer.setStyle(finalBitmap)
+        } else {
+            artisticStyleTransfer.setStyle(styleBitmap)
+        }
     }
 
     override fun getWidthForNextStep(): Int {
@@ -62,8 +98,8 @@ class ArtisticStyleTransferStep(
         frameToCropTransform = getTransformationMatrix(
             videoSourceWidth,
             videoSourceHeight,
-            ArtisticStyleTransferImpl.CONTENT_IMAGE_SIZE,
-            ArtisticStyleTransferImpl.CONTENT_IMAGE_SIZE,
+            artisticStyleTransfer.getContentImageSize(),
+            artisticStyleTransfer.getContentImageSize(),
             0,
             false
         )
