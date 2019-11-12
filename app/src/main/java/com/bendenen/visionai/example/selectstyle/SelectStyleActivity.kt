@@ -1,4 +1,4 @@
-package com.bendenen.tfliteexample.selectstyle
+package com.bendenen.visionai.example.selectstyle
 
 import android.app.Activity
 import android.content.Context
@@ -7,6 +7,8 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.bendenen.visionai.example.R
 import com.bendenen.visionai.tflite.styletransfer.step.Gallery
 import com.bendenen.visionai.tflite.styletransfer.step.Style
 import kotlinx.android.synthetic.main.activity_select_style.*
@@ -15,22 +17,28 @@ class SelectStyleActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(com.bendenen.tfliteexample.R.layout.activity_select_style)
+        setContentView(R.layout.activity_select_style)
 
         style_list.layoutManager = GridLayoutManager(this, 3)
-        style_list.adapter = StyleListAdapter(Gallery.values().asList()) { position ->
+        style_list.adapter =
+            StyleListAdapter(Gallery.values().asList()) { position ->
 
-            setResult(Activity.RESULT_OK, Intent().also {
-                it.putExtra(SELECTED_STYLE_POSITION_ARG, position)
-            })
-            finish()
-        }
+                setResult(Activity.RESULT_OK, Intent().also {
+                    it.putExtra(
+                        SELECTED_STYLE_POSITION_ARG,
+                        position
+                    )
+                })
+                finish()
+            }
 
         get_custom_image.setOnClickListener {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
             intent.addCategory(Intent.CATEGORY_OPENABLE)
             intent.type = "image/*"
-            startActivityForResult(intent, PICK_IMAGE_REQUEST_CODE)
+            startActivityForResult(intent,
+                PICK_IMAGE_REQUEST_CODE
+            )
         }
     }
 

@@ -11,5 +11,5 @@ data class VisionAiConfig(
     val videoUri: Uri? = null,
     val videoSource: VideoSource? = null,
     val outputEncoder: OutputEncoder? = null,
-    val outputFile: File? = null
+    val outputFile: File
 )

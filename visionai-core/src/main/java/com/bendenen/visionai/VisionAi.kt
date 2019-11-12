@@ -1,7 +1,6 @@
 package com.bendenen.visionai
 
 import android.graphics.Bitmap
-import android.os.Environment
 import android.util.Log
 import com.bendenen.visionai.outputencoder.OutputEncoder
 import com.bendenen.visionai.outputencoder.mediamuxer.MediaMuxerOutputEncoderImpl
@@ -15,7 +14,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.io.File
 import kotlin.coroutines.CoroutineContext
 
 object VisionAi : VideoProcessorListener, CoroutineScope {
@@ -46,12 +44,8 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
 
         fun initOutputEncoder() {
             outputEncoder = visionAiConfig.outputEncoder ?: MediaMuxerOutputEncoderImpl()
-            val outputFile = visionAiConfig.outputFile ?: File(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES),
-                "temp.mp4"
-            )
             outputEncoder.initialize(
-                outputFile,
+                visionAiConfig.outputFile,
                 videoSource.getSourceWidth(),
                 videoSource.getSourceHeight()
             )

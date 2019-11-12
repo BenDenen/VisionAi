@@ -1,4 +1,4 @@
-package com.bendenen.tfliteexample
+package com.bendenen.visionai.example
 
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -7,19 +7,21 @@ import android.graphics.BlendMode
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.bendenen.tfliteexample.selectstyle.SelectStyleActivity
 import com.bendenen.visionai.VisionAi
 import com.bendenen.visionai.VisionAiConfig
+import com.bendenen.visionai.example.selectstyle.SelectStyleActivity
 import com.bendenen.visionai.tflite.styletransfer.step.ArtisticStyleTransferStep
 import com.bendenen.visionai.tflite.styletransfer.step.SourcesOrder
 import com.bendenen.visionai.tflite.styletransfer.step.Style
 import kotlinx.android.synthetic.main.activity_main.*
+import java.io.File
 
 class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
 
@@ -32,7 +34,9 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
         setContentView(R.layout.activity_main)
 
         if (!allPermissionsGranted() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(getRequiredPermissions(), PERMISSIONS_REQUEST_CODE)
+            requestPermissions(getRequiredPermissions(),
+                PERMISSIONS_REQUEST_CODE
+            )
             return
         }
 
@@ -48,7 +52,9 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
         record_video_button.setOnClickListener {
             Intent(MediaStore.ACTION_VIDEO_CAPTURE).also { takeVideoIntent ->
                 takeVideoIntent.resolveActivity(packageManager)?.also {
-                    startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE_CODE)
+                    startActivityForResult(takeVideoIntent,
+                        REQUEST_VIDEO_CAPTURE_CODE
+                    )
                 }
             }
         }
@@ -58,7 +64,9 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
                 MediaStore.Video.Media.EXTERNAL_CONTENT_URI
             )
 
-            startActivityForResult(galleryIntent, REQUEST_VIDEO_CAPTURE_CODE)
+            startActivityForResult(galleryIntent,
+                REQUEST_VIDEO_CAPTURE_CODE
+            )
         }
         request_preview.setOnClickListener {
             loading_indicator.visibility = View.VISIBLE
@@ -106,12 +114,12 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
 
         }
         select_order.setOnClickListener {
-            when (selectedSourceOrder) {
+            selectedSourceOrder = when (selectedSourceOrder) {
                 SourcesOrder.FORWARD -> {
-                    selectedSourceOrder = SourcesOrder.BACKWARD
+                    SourcesOrder.BACKWARD
                 }
                 SourcesOrder.BACKWARD -> {
-                    selectedSourceOrder = SourcesOrder.FORWARD
+                    SourcesOrder.FORWARD
                 }
             }
             selected_order.text = selectedSourceOrder.name
@@ -129,7 +137,11 @@ class MainActivity : AppCompatActivity(), VisionAi.ResultListener {
                     VisionAi.init(
                         VisionAiConfig(
                             application = application,
-                            videoUri = it
+                            videoUri = it,
+                            outputFile = File(
+                                this.getExternalFilesDir(Environment.DIRECTORY_MOVIES),
+                                "temp.mp4"
+                            )
                         )
                     ) {
                         loading_indicator.visibility = View.GONE

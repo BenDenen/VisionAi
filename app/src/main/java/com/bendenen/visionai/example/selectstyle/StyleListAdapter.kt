@@ -1,17 +1,17 @@
-package com.bendenen.tfliteexample.selectstyle
+package com.bendenen.visionai.example.selectstyle
 
 import android.graphics.BitmapFactory
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.bendenen.tfliteexample.R
+import com.bendenen.visionai.example.R
 import com.bendenen.visionai.tflite.styletransfer.step.Gallery
 import com.bendenen.visionai.tflite.styletransfer.step.Style
 import kotlinx.android.synthetic.main.item_style.view.*
 
 class StyleListAdapter(
-    private val styleList:List<Gallery>,
+    private val styleList: List<Gallery>,
     private val callback: (position: Int) -> Unit
 ) : RecyclerView.Adapter<StyleListAdapter.StyleViewHolder>() {
 
