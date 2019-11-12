@@ -1,5 +1,5 @@
 #pragma version(1) 
-#pragma rs java_package_name(com.bendenen.tfliteexample)
+#pragma rs java_package_name(com.bendenen.visionai)
 
 rs_allocation gIn;
 int width;

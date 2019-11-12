@@ -2,16 +2,13 @@ package com.bendenen.visionai.tflite.styletransfer.step.objectdetection
 
 import android.graphics.Bitmap
 import android.graphics.RectF
-import androidx.annotation.WorkerThread
 
 interface ObjectDetector {
 
     val statString: String
 
-    @WorkerThread
     fun recognizeImage(bitmap: Bitmap): List<Recognition>
 
-    @WorkerThread
     fun recognizeImageBytes(bytes: ByteArray): List<Recognition>
 
     fun enableStatLogging(debug: Boolean)

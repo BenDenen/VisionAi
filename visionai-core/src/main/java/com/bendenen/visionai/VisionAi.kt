@@ -1,7 +1,6 @@
 package com.bendenen.visionai
 
 import android.graphics.Bitmap
-import android.os.Environment
 import android.util.Log
 import com.bendenen.visionai.outputencoder.OutputEncoder
 import com.bendenen.visionai.outputencoder.mediamuxer.MediaMuxerOutputEncoderImpl
@@ -15,7 +14,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import java.io.File
 import kotlin.coroutines.CoroutineContext
 
 object VisionAi : VideoProcessorListener, CoroutineScope {
@@ -41,17 +39,13 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
 
     fun init(
         visionAiConfig: VisionAiConfig,
-        ready: () -> Unit
+        initHandler: () -> Unit
     ) {
 
         fun initOutputEncoder() {
             outputEncoder = visionAiConfig.outputEncoder ?: MediaMuxerOutputEncoderImpl()
-            val outputFile = visionAiConfig.outputFile ?: File(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES),
-                "temp.mp4"
-            )
             outputEncoder.initialize(
-                outputFile,
+                visionAiConfig.outputFile,
                 videoSource.getSourceWidth(),
                 videoSource.getSourceHeight()
             )
@@ -61,35 +55,40 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
         if (visionAiConfig.videoSource != null) {
             videoSource = visionAiConfig.videoSource
             initOutputEncoder()
-            ready.invoke()
+            initHandler.invoke()
         } else if (visionAiConfig.videoUri != null && visionAiConfig.application != null) {
+
             videoSource = MediaCodecVideoSourceImpl(visionAiConfig.application)
             launch {
                 (videoSource as MediaFileVideoSource).loadVideoFile(
                     visionAiConfig.videoUri
                 )
                 initOutputEncoder()
-                ready.invoke()
+                initHandler.invoke()
             }
         } else {
             throw IllegalArgumentException(" Not enough information about video source ")
         }
         videoSource.useBitmap(true)
+        videoProcessor.setListener(VisionAi)
     }
 
-    fun addSteps(
-        steps: List<ProcessorStep>,
-        resultCallback: () -> Unit
+    fun setSteps(
+        steps: List<ProcessorStep>
     ) {
         assert(::videoProcessor.isInitialized)
         assert(::videoSource.isInitialized)
 
-        launch {
-            videoProcessor.addSteps(steps)
-            videoProcessor.setListener(VisionAi)
-            videoProcessor.init(videoSource.getSourceWidth(), videoSource.getSourceHeight())
-            resultCallback.invoke()
+        var width = videoSource.getSourceWidth()
+        var height = videoSource.getSourceHeight()
+
+        for (step in steps) {
+            step.init(width, height)
+            width = step.getWidthForNextStep()
+            height = step.getHeightForNextStep()
         }
+
+        videoProcessor.setSteps(steps)
     }
 
     @Throws(IllegalArgumentException::class, AssertionError::class)

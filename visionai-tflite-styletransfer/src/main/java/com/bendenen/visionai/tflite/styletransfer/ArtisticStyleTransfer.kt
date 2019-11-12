@@ -1,17 +1,20 @@
 package com.bendenen.visionai.tflite.styletransfer
 
-import androidx.annotation.WorkerThread
+import android.graphics.Bitmap
 
 interface ArtisticStyleTransfer {
 
-    fun setStyleImage(styleImagePath: String)
+    fun setStyle(styleBitmap: Bitmap)
 
-    @WorkerThread
     fun styleTransform(
         contentImageData: ByteArray,
         imageWidth: Int,
         imageHeight: Int
     ): Array<Array<Array<FloatArray>>>
+
+    fun getStyleImageSize(): Int
+
+    fun getContentImageSize(): Int
 
     fun close()
 }

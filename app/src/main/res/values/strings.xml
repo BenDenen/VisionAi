@@ -2,4 +2,11 @@
     <string name="app_name">TF Lite Example</string>
 
     <string name="input_surface">input surface</string>
+    <string name="record_video">Record Video</string>
+    <string name="select_video">Select Video</string>
+    <string name="select_style">Select Style</string>
+    <string name="style_image">Style Image</string>
+    <string name="play_button">Play button</string>
+
+
 </resources>

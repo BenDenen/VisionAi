@@ -8,7 +8,7 @@ import android.renderscript.RenderScript
 import android.renderscript.Type
 import android.util.Size
 import android.view.Surface
-import com.bendenen.tfliteexample.ScriptC_Yuv2Rgb
+import com.bendenen.visionai.ScriptC_Yuv2Rgb
 import com.bendenen.visionai.videosource.render.ImageRender
 
 class CustomRenderScriptImageRender(

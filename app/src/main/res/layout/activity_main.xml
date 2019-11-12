@@ -4,41 +4,116 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".MainActivity">
+        tools:context=".example.MainActivity">
 
-    <ImageView
-            android:id="@+id/input_surface"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:contentDescription="@string/input_surface"
-            android:src="@drawable/ic_launcher_background"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-            android:id="@+id/record_video_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Record Video"
+    <ImageButton
+            android:id="@+id/select_style_effect"
+            android:contentDescription="@string/select_style"
+            android:layout_width="@dimen/button_size"
+            android:layout_height="@dimen/button_size"
+            android:padding="@dimen/small_padding"
+            android:src="@drawable/ic_photo_library_black_24dp"
+            android:layout_margin="@dimen/small_margin"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-            android:id="@+id/select_video_button"
+    <Spinner
+            android:id="@+id/select_mode_spinner"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Select Video"
+            android:background="@android:drawable/btn_dropdown"
+            app:layout_constraintStart_toEndOf="@+id/select_style_effect"
+            app:layout_constraintTop_toTopOf="@+id/select_style_effect"
+            app:layout_constraintBottom_toBottomOf="@+id/select_style_effect"
+            android:spinnerMode="dropdown"/>
+
+    <ImageButton
+            android:id="@+id/select_order"
+            android:contentDescription="@string/select_style"
+            android:layout_width="@dimen/button_size"
+            android:layout_height="@dimen/button_size"
+            android:padding="@dimen/small_padding"
+            android:src="@drawable/ic_autorenew_black_24dp"
+            android:layout_margin="@dimen/small_margin"
+            app:layout_constraintStart_toEndOf="@+id/select_mode_spinner"
+            app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+            android:id="@+id/selected_order"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/small_margin"
+            app:layout_constraintStart_toEndOf="@+id/select_order"
+            app:layout_constraintTop_toTopOf="@+id/select_order"
+            app:layout_constraintBottom_toBottomOf="@+id/select_order"
+            tools:text="FORWARD"
+            />
+
+    <ImageButton
+            android:id="@+id/record_video_button"
+            android:contentDescription="@string/record_video"
+            android:layout_width="@dimen/button_size"
+            android:layout_height="@dimen/button_size"
+            android:src="@drawable/ic_fiber_manual_record_red_24dp"
+            android:layout_margin="@dimen/small_margin"
+            app:layout_constraintEnd_toStartOf="@+id/select_video_button"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
+            android:id="@+id/select_video_button"
+            android:contentDescription="@string/select_video"
+            android:layout_width="@dimen/button_size"
+            android:layout_height="@dimen/button_size"
+            android:padding="@dimen/small_padding"
+            android:src="@drawable/ic_video_library_black_24dp"
+            android:layout_margin="@dimen/small_margin"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+            android:id="@+id/input_surface"
+            android:layout_margin="@dimen/small_margin"
+            android:layout_width="@dimen/frame_preview_size"
+            android:layout_height="0dp"
+            android:contentDescription="@string/input_surface"
+            android:background="@android:color/holo_blue_dark"
+            app:layout_constraintDimensionRatio="H,16:9"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/record_video_button" />
+
+    <ImageView
+            android:id="@+id/play_button"
+            android:visibility="gone"
+            android:layout_margin="@dimen/small_margin"
+            android:layout_width="@dimen/button_size"
+            android:layout_height="@dimen/button_size"
+            android:src="@drawable/ic_play_circle_outline_white_24dp"
+            android:contentDescription="@string/play_button"
+            app:layout_constraintBottom_toBottomOf="@+id/input_surface"
+            app:layout_constraintEnd_toEndOf="@+id/input_surface"
+            app:layout_constraintStart_toStartOf="@+id/input_surface"
+            app:layout_constraintTop_toTopOf="@+id/input_surface"
+            tools:visibility="visible" />
+
+
+    <ProgressBar
+            android:id="@+id/video_processing_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:visibility="gone"
+            android:layout_width="0dp"
+            android:layout_margin="@dimen/small_margin"
+            android:layout_height="@dimen/video_processor_progressbar_height"
+            android:indeterminate="true"
+            app:layout_constraintBottom_toBottomOf="@+id/input_surface"
+            app:layout_constraintEnd_toStartOf="@+id/record_video_button"
+            app:layout_constraintStart_toEndOf="@+id/input_surface"
+            app:layout_constraintTop_toTopOf="@+id/input_surface" />
 
     <Button
             android:id="@+id/request_preview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:enabled="false"
-            android:text="Request Preview"
+            android:text="Preview"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
 
@@ -47,7 +122,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:enabled="false"
-            android:text="Request Processing"
+            android:text="Processing"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 

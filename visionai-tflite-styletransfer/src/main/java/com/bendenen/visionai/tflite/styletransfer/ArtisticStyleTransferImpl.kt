@@ -1,7 +1,7 @@
 package com.bendenen.visionai.tflite.styletransfer
 
 import android.content.Context
-import android.graphics.BitmapFactory
+import android.graphics.Bitmap
 import android.util.Log
 import com.bendenen.visionai.visionai.shared.utils.NativeImageUtilsWrapper
 import com.bendenen.visionai.visionai.shared.utils.loadModelFile
@@ -26,7 +26,7 @@ class ArtisticStyleTransferImpl(
     }
 
     private lateinit var bottleNeckBuffer: Array<Array<Array<FloatArray>>>
-    private lateinit var styleImagePath: String
+    private lateinit var styleBitmap: Bitmap
     private var updateBottleNeck = true
 
     private val contentImageFloatArrayBuffer by lazy {
@@ -51,12 +51,9 @@ class ArtisticStyleTransferImpl(
         }
     }
 
-    override fun setStyleImage(styleImagePath: String) {
-        if (styleImagePath.isEmpty()) {
-            Log.e(TAG, "Style image can not be empty")
-            return
-        }
+    override fun setStyle(styleBitmap: Bitmap) {
         updateBottleNeck = true
+        this.styleBitmap = styleBitmap
         bottleNeckBuffer =
             Array(BOTTLE_NECK_SIZE[0]) {
                 Array(BOTTLE_NECK_SIZE[1]) {
@@ -67,7 +64,6 @@ class ArtisticStyleTransferImpl(
                     }
                 }
             }
-        this.styleImagePath = styleImagePath
     }
 
     override fun styleTransform(
@@ -80,12 +76,10 @@ class ArtisticStyleTransferImpl(
         val startTime = System.currentTimeMillis()
 
         if (updateBottleNeck) {
-            // TODO: Check all available storage of Style images
-            val bitmap = BitmapFactory.decodeStream(assetManager.open(styleImagePath))
             val imageStyleData =
                 ByteBuffer.allocateDirect(1 * STYLE_IMAGE_SIZE * STYLE_IMAGE_SIZE * CHANNELS_NUM * 4)
             imageStyleData.order(ByteOrder.nativeOrder())
-            bitmap.toNormalizedFloatByteBuffer(
+            styleBitmap.toNormalizedFloatByteBuffer(
                 imageStyleData,
                 STYLE_IMAGE_SIZE,
                 IMAGE_MEAN
@@ -123,6 +117,10 @@ class ArtisticStyleTransferImpl(
         return finalImageData
     }
 
+    override fun getStyleImageSize(): Int = STYLE_IMAGE_SIZE
+
+    override fun getContentImageSize(): Int = CONTENT_IMAGE_SIZE
+
     override fun close() {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
@@ -138,8 +136,8 @@ class ArtisticStyleTransferImpl(
 
         private const val TAG = "ArtisticStyleTransfer"
 
-        const val STYLE_IMAGE_SIZE = 256
-        const val CONTENT_IMAGE_SIZE = 384
+        private const val STYLE_IMAGE_SIZE = 256
+        private const val CONTENT_IMAGE_SIZE = 384
         const val CHANNELS_NUM = 3
 
         private val BOTTLE_NECK_SIZE = arrayOf(1, 1, 1, 100)

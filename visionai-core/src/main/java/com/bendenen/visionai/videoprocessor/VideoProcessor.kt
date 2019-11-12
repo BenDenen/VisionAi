@@ -22,7 +22,8 @@ class VideoProcessor : VideoSourceListener, CoroutineScope {
         steps.add(processorStep)
     }
 
-    fun addSteps(processorSteps: List<ProcessorStep>) {
+    fun setSteps(processorSteps: List<ProcessorStep>) {
+        steps.clear()
         steps.addAll(processorSteps)
     }
 
@@ -30,53 +31,19 @@ class VideoProcessor : VideoSourceListener, CoroutineScope {
         this.videoProcessorListener = videoProcessorListener
     }
 
-    suspend fun init(
-        videoSourceWidth: Int,
-        videoSourceHeight: Int
-    ) {
-
-        withContext(coroutineContext) {
-            var width = videoSourceWidth
-            var height = videoSourceHeight
-
-            for (step in steps) {
-                step.init(width, height)
-                width = step.getWidthForNextStep()
-                height = step.getHeightForNextStep()
-            }
-        }
-    }
-
     suspend fun applyForData(
         bitmap: Bitmap
-    ): Bitmap =
-
-        withContext(coroutineContext) {
-            var result = bitmap
-            for (step in steps) {
-                result = step.applyForData(result)
-            }
-
-            return@withContext result
-        }
-
-    suspend fun applyForData(
-        rgbBytes: ByteArray,
-        width: Int,
-        height: Int
     ): Bitmap = withContext(coroutineContext) {
-
-        var result = steps[0].applyForData(rgbBytes, width, height)
-
-        for (index in 1 until steps.size) {
-            result = steps[index].applyForData(result)
+        var result = bitmap
+        for (step in steps) {
+            result = step.applyForData(result)
         }
 
         return@withContext result
     }
 
     override fun onNewData(rgbBytes: ByteArray, bitmap: Bitmap) {
-        var result = steps[0].applyForData(rgbBytes, bitmap.width, bitmap.height)
+        var result = steps[0].applyForData(bitmap)
 
         for (index in 1 until steps.size) {
             result = steps[index].applyForData(result)
