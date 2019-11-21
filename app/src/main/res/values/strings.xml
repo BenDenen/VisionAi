@@ -1,12 +1,19 @@
 <resources>
-    <string name="app_name">TF Lite Example</string>
+    <string name="app_name">Vision AI Sample</string>
 
-    <string name="input_surface">input surface</string>
+    <string name="request_style_transfer">Style Transfer</string>
+
+    <string name="request_processing">Processing</string>
+    <string name="request_video">Request Video</string>
+
+    <string name="input_surface">Input surface</string>
     <string name="record_video">Record Video</string>
     <string name="select_video">Select Video</string>
     <string name="select_style">Select Style</string>
     <string name="style_image">Style Image</string>
     <string name="play_button">Play button</string>
+
+    <string name="add_new_style">Create New</string>
 
 
 </resources>

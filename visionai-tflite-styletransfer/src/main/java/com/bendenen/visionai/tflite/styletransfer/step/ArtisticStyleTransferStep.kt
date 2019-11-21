@@ -35,16 +35,14 @@ class ArtisticStyleTransferStep(
             artisticStyleTransfer.getContentImageSize(),
             Bitmap.Config.ARGB_8888
         )
-        val styleBitmap: Bitmap
-        when (config.style) {
+        val styleBitmap = when (config.style) {
             is Style.AssetStyle -> {
-                styleBitmap =
-                    BitmapFactory.decodeStream(context.assets.open(config.style.styleFileName))
+                BitmapFactory.decodeStream(context.assets.open(config.style.styleFileName))
             }
             is Style.PhotoUriStyle -> {
                 val inputStream =
                     context.contentResolver.openInputStream(config.style.styleFileUri)!!
-                styleBitmap = BitmapFactory.decodeStream(inputStream)
+                BitmapFactory.decodeStream(inputStream)
             }
             else -> throw IllegalArgumentException("Unknown Style type : ${config.style::class.java.simpleName}")
         }
