@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/blend_title"
+        android:gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/small_padding"
+        android:layout_margin="@dimen/extra_small_margin"
+        android:textColor="@android:color/white"
+        android:contentDescription="@string/style_image"
+        android:background="@android:color/darker_gray"
+        tools:text="BLEND_MODE"/>

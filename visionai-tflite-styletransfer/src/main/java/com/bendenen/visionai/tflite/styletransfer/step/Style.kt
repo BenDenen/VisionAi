@@ -4,42 +4,39 @@ import android.net.Uri
 
 sealed class Style {
 
+    abstract val name: String
+
     data class AssetStyle(
-        val styleFileName: String
+        val styleFileName: String,
+        override val name: String
     ) : Style()
 
     data class PhotoUriStyle(
-        val styleFileUri: Uri
+        val styleFileUri: Uri,
+        override val name: String
     ) : Style()
 }
 
 enum class Gallery(
-    val styleName: String,
     val style: Style
 ) {
     PICASSO_SELF_PORTRAIT(
-        "Picasso Self Portrait",
-        Style.AssetStyle("picasso_self.jpg")
+        Style.AssetStyle("picasso_self.jpg", "Picasso Self Portrait")
     ),
     SUNFLOWERS(
-        "Sunflowers",
-        Style.AssetStyle("sunflowers.jpg")
+        Style.AssetStyle("sunflowers.jpg", "Sunflowers")
     ),
     HAPPY_MOOD_SPRING(
-        "Happy Mood Spring",
-        Style.AssetStyle("happy_mood_spring.jpg")
+        Style.AssetStyle("happy_mood_spring.jpg", "Happy Mood Spring")
     ),
     STARRY_NIGHT(
-        "Starry Night",
-        Style.AssetStyle("starry_night.jpg")
+        Style.AssetStyle("starry_night.jpg", "Starry Night")
     ),
     FLOWERS(
-        "Flowers",
-        Style.AssetStyle("flowers.jpg")
+        Style.AssetStyle("flowers.jpg", "Flowers")
     ),
     LION(
-        "Lion",
-        Style.AssetStyle("lion.jpg")
+        Style.AssetStyle("lion.jpg", "Lion")
     )
 }
 

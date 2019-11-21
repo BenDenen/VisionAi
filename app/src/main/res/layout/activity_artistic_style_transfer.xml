@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+    <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toTopOf="@+id/request_video"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:context=".screens.artisticstyletransfer.ArtisticStyleTransferActivity">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+            <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/style_list"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/small_margin"
+                    android:orientation="horizontal"
+                    android:alpha="0.6"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:listitem="@layout/item_style"
+                    tools:visibility="visible" />
+
+            <View
+                    android:id="@+id/style_stub"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:background="@android:color/transparent"
+                    android:alpha="0.2"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:layout_constraintBottom_toBottomOf="@+id/style_list"
+                    app:layout_constraintEnd_toEndOf="@+id/style_list"
+                    app:layout_constraintStart_toStartOf="@+id/style_list"
+                    app:layout_constraintTop_toTopOf="@+id/style_list" />
+
+            <ImageView
+                    android:id="@+id/input_surface"
+                    android:layout_margin="@dimen/small_margin"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:contentDescription="@string/input_surface"
+                    android:background="@android:color/darker_gray"
+                    app:layout_constraintDimensionRatio="H,16:9"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/style_list" />
+
+            <TextView
+                    android:id="@+id/request_video"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/small_padding"
+                    android:background="@drawable/stroke_background_white"
+                    android:text="@string/select_video"
+                    android:textColor="@android:color/white"
+                    android:layout_margin="@dimen/small_margin"
+                    app:layout_constraintBottom_toBottomOf="@+id/input_surface"
+                    app:layout_constraintEnd_toEndOf="@+id/input_surface"
+                    app:layout_constraintStart_toStartOf="@+id/input_surface"
+                    app:layout_constraintTop_toTopOf="@+id/input_surface" />
+
+
+            <ImageView
+                    android:id="@+id/play_button"
+                    android:visibility="gone"
+                    android:layout_margin="@dimen/small_margin"
+                    android:layout_width="@dimen/button_size"
+                    android:layout_height="@dimen/button_size"
+                    android:src="@drawable/ic_play_circle_outline_white_24dp"
+                    android:contentDescription="@string/play_button"
+                    app:layout_constraintBottom_toBottomOf="@+id/input_surface"
+                    app:layout_constraintEnd_toEndOf="@+id/input_surface"
+                    app:layout_constraintStart_toStartOf="@+id/input_surface"
+                    app:layout_constraintTop_toTopOf="@+id/input_surface"
+                    tools:visibility="visible" />
+
+            <ProgressBar
+                    android:id="@+id/loading_indicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    app:layout_constraintBottom_toBottomOf="@+id/input_surface"
+                    app:layout_constraintEnd_toEndOf="@+id/input_surface"
+                    app:layout_constraintStart_toStartOf="@+id/input_surface"
+                    app:layout_constraintTop_toTopOf="@+id/input_surface"
+                    tools:visibility="visible" />
+
+            <ProgressBar
+                    android:id="@+id/video_processing_progress"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:visibility="gone"
+                    android:layout_width="0dp"
+                    android:layout_margin="@dimen/small_margin"
+                    android:layout_height="@dimen/video_processor_progressbar_height"
+                    android:indeterminate="true"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/input_surface"
+                    tools:visibility="visible" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/blend_mode_list"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="@dimen/small_margin"
+                    android:orientation="horizontal"
+                    android:alpha="0.6"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/video_processing_progress"
+                    tools:listitem="@layout/item_blend_mode"
+                    tools:visibility="visible" />
+
+            <View
+                    android:id="@+id/blend_mode_stub"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:background="@android:color/transparent"
+                    android:alpha="0.2"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:layout_constraintBottom_toBottomOf="@+id/blend_mode_list"
+                    app:layout_constraintEnd_toEndOf="@+id/blend_mode_list"
+                    app:layout_constraintStart_toStartOf="@+id/blend_mode_list"
+                    app:layout_constraintTop_toTopOf="@+id/blend_mode_list" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/request_processing"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:enabled="false"
+            android:layout_margin="@dimen/small_margin"
+            app:srcCompat="@drawable/ic_movie_filter_white_24dp" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+
+
+
+

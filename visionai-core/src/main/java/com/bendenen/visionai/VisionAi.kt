@@ -37,9 +37,8 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
 
-    fun init(
-        visionAiConfig: VisionAiConfig,
-        initHandler: () -> Unit
+    suspend fun init(
+        visionAiConfig: VisionAiConfig
     ) {
 
         fun initOutputEncoder() {
@@ -55,17 +54,13 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
         if (visionAiConfig.videoSource != null) {
             videoSource = visionAiConfig.videoSource
             initOutputEncoder()
-            initHandler.invoke()
         } else if (visionAiConfig.videoUri != null && visionAiConfig.application != null) {
 
             videoSource = MediaCodecVideoSourceImpl(visionAiConfig.application)
-            launch {
-                (videoSource as MediaFileVideoSource).loadVideoFile(
-                    visionAiConfig.videoUri
-                )
-                initOutputEncoder()
-                initHandler.invoke()
-            }
+            (videoSource as MediaFileVideoSource).loadVideoFile(
+                visionAiConfig.videoUri
+            )
+            initOutputEncoder()
         } else {
             throw IllegalArgumentException(" Not enough information about video source ")
         }
@@ -92,18 +87,14 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
     }
 
     @Throws(IllegalArgumentException::class, AssertionError::class)
-    fun requestPreview(
-        timestamp: Long,
-        resultHandler: (Bitmap) -> Unit
-    ) {
+    suspend fun requestPreview(
+        timestamp: Long
+    ): Bitmap {
         assert(::videoSource.isInitialized)
         assert(::videoProcessor.isInitialized)
         require(videoSource is MediaFileVideoSource)
-        launch {
-            val bitmap = (videoSource as MediaFileVideoSource).requestPreview(timestamp)
-            val result = videoProcessor.applyForData(bitmap)
-            resultHandler.invoke(result)
-        }
+        val bitmap = (videoSource as MediaFileVideoSource).requestPreview(timestamp)
+        return videoProcessor.applyForData(bitmap)
     }
 
     fun start(resultListener: ResultListener) {

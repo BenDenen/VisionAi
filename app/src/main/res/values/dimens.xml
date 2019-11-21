@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <dimen name="extra_small_margin">8dp</dimen>
     <dimen name="small_margin">16dp</dimen>
     <dimen name="small_padding">16dp</dimen>
     <dimen name="middle_padding">32dp</dimen>
 
     <dimen name="button_size">64dp</dimen>
-    <dimen name="style_image_size">200dp</dimen>
+    <dimen name="style_image_size">100dp</dimen>
 
     <dimen name="frame_preview_size">180dp</dimen>
     <dimen name="video_processor_progressbar_height">8dp</dimen>
+
+    <dimen name="background_radius">8dp</dimen>
+    <dimen name="background_stroke_width">2dp</dimen>
 </resources>
