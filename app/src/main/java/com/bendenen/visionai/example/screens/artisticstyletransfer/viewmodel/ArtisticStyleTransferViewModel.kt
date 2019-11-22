@@ -71,7 +71,7 @@ class ArtisticStyleTransferViewModel(
         viewModelScope.launch {
             isStyleSelected.postValue(false)
             isLoading.postValue(true)
-            styleTransferFunctionsUseCase.setStyle(style)
+            styleTransferFunctionsUseCase.initStyle(style)
             previewImage.postValue(styleTransferFunctionsUseCase.getPreview())
             isLoading.postValue(false)
             isStyleSelected.postValue(true)

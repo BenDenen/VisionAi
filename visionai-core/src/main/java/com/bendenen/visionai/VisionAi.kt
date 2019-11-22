@@ -4,9 +4,10 @@ import android.graphics.Bitmap
 import android.util.Log
 import com.bendenen.visionai.outputencoder.OutputEncoder
 import com.bendenen.visionai.outputencoder.mediamuxer.MediaMuxerOutputEncoderImpl
-import com.bendenen.visionai.videoprocessor.ProcessorStep
+import com.bendenen.visionai.videoprocessor.StepConfig
 import com.bendenen.visionai.videoprocessor.VideoProcessor
 import com.bendenen.visionai.videoprocessor.VideoProcessorListener
+import com.bendenen.visionai.videoprocessor.VideoProcessorStep
 import com.bendenen.visionai.videosource.MediaFileVideoSource
 import com.bendenen.visionai.videosource.VideoSource
 import com.bendenen.visionai.videosource.mediacodec.MediaCodecVideoSourceImpl
@@ -68,8 +69,8 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
         videoProcessor.setListener(VisionAi)
     }
 
-    fun setSteps(
-        steps: List<ProcessorStep>
+    suspend fun <T:StepConfig> initSteps(
+        videoProcessorSteps: List<VideoProcessorStep<T>>
     ) {
         assert(::videoProcessor.isInitialized)
         assert(::videoSource.isInitialized)
@@ -77,13 +78,25 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
         var width = videoSource.getSourceWidth()
         var height = videoSource.getSourceHeight()
 
-        for (step in steps) {
-            step.init(width, height)
+        for (step in videoProcessorSteps) {
+            step.getConfig().apply {
+                videoSourceWidth = width
+                videoSourceHeight = height
+            }
+            step.init()
             width = step.getWidthForNextStep()
             height = step.getHeightForNextStep()
         }
 
-        videoProcessor.setSteps(steps)
+        videoProcessor.setSteps(videoProcessorSteps)
+    }
+
+    suspend fun updateConfigForStep(stepIndex: Int, config: StepConfig) {
+        assert(::videoProcessor.isInitialized)
+        assert(::videoSource.isInitialized)
+        assert(stepIndex >= 0)
+
+        videoProcessor.getStepAtPosition(stepIndex).updateConfig(config)
     }
 
     @Throws(IllegalArgumentException::class, AssertionError::class)

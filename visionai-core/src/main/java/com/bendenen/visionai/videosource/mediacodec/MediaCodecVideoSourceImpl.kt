@@ -48,6 +48,9 @@ class MediaCodecVideoSourceImpl(
 
     private var isFrameRendering = false
 
+    private lateinit var previewBitmap: Bitmap
+    private var lastRequestedTimestamp: Long = -1
+
     private val job = Job()
 
     override val coroutineContext: CoroutineContext
@@ -179,11 +182,16 @@ class MediaCodecVideoSourceImpl(
     }
 
     private suspend fun getPreviewForTime(timestamp: Long): Bitmap =
-        withContext(Dispatchers.IO) {
-            val mediaMetadataRetriever = MediaMetadataRetriever()
-
-            mediaMetadataRetriever.setDataSource(application, videoUri)
-            return@withContext mediaMetadataRetriever.getFrameAtTime(timestamp)
+        if (::previewBitmap.isInitialized && timestamp == lastRequestedTimestamp) {
+            previewBitmap
+        } else {
+            withContext(Dispatchers.IO) {
+                val mediaMetadataRetriever = MediaMetadataRetriever()
+                mediaMetadataRetriever.setDataSource(application, videoUri)
+                previewBitmap = mediaMetadataRetriever.getFrameAtTime(timestamp)
+                lastRequestedTimestamp = timestamp
+                return@withContext previewBitmap
+            }
         }
 
     private suspend fun startDataRetrieving() =

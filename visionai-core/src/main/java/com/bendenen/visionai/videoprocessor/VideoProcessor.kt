@@ -11,25 +11,29 @@ import kotlin.coroutines.CoroutineContext
 class VideoProcessor : VideoSourceListener, CoroutineScope {
 
     private var videoProcessorListener: VideoProcessorListener? = null
-    private val steps = mutableListOf<ProcessorStep>()
+    private val steps = mutableListOf<VideoProcessorStep<out StepConfig>>()
 
     private val job = Job()
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + job
 
-    fun addStep(processorStep: ProcessorStep) {
-        steps.add(processorStep)
+    fun <T : StepConfig> addStep(videoProcessorStep: VideoProcessorStep<T>) {
+        steps.add(videoProcessorStep)
     }
 
-    fun setSteps(processorSteps: List<ProcessorStep>) {
-        steps.clear()
-        steps.addAll(processorSteps)
+    fun <T : StepConfig> setSteps(videoProcessorSteps: List<VideoProcessorStep<T>>) {
+        this.steps.clear()
+        this.steps.addAll(videoProcessorSteps)
     }
 
     internal fun setListener(videoProcessorListener: VideoProcessorListener) {
         this.videoProcessorListener = videoProcessorListener
     }
+
+    @Suppress("UNCHECKED_CAST")
+    fun getStepAtPosition(position: Int): VideoProcessorStep<StepConfig> =
+        steps[position] as VideoProcessorStep<StepConfig>
 
     suspend fun applyForData(
         bitmap: Bitmap
