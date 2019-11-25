@@ -1,15 +1,12 @@
 package com.bendenen.visionai.tflite.styletransfer.step
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.BlendMode
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
 import com.bendenen.visionai.tflite.styletransfer.ArtisticStyleTransfer
 import com.bendenen.visionai.tflite.styletransfer.ArtisticStyleTransferImpl
-import com.bendenen.visionai.videoprocessor.StepConfig
 import com.bendenen.visionai.videoprocessor.VideoProcessorStep
 import com.bendenen.visionai.visionai.shared.utils.getTransformationMatrix
 import com.bendenen.visionai.visionai.shared.utils.toBitmap
@@ -19,7 +16,7 @@ import kotlinx.coroutines.withContext
 
 class ArtisticStyleTransferVideoProcessorStep(
     styleTransferConfig: StyleTransferConfig
-) : VideoProcessorStep<ArtisticStyleTransferVideoProcessorStep.StyleTransferConfig>(
+) : VideoProcessorStep<StyleTransferConfig, ArtisticStyleTransferStepResult>(
     styleTransferConfig
 ) {
 
@@ -107,7 +104,7 @@ class ArtisticStyleTransferVideoProcessorStep(
     }
 
     override suspend fun updateWithConfig(newConfig: StyleTransferConfig) {
-        if(stepConfig.style != newConfig.style) {
+        if (stepConfig.style != newConfig.style) {
             stepConfig.apply {
                 this.context = newConfig.context
                 this.style = newConfig.style
@@ -125,10 +122,9 @@ class ArtisticStyleTransferVideoProcessorStep(
             this.sourcesOrder = newConfig.sourcesOrder
             this.maskAlpha = newConfig.maskAlpha
         }
-
     }
 
-    override fun applyForData(bitmap: Bitmap): Bitmap {
+    override fun applyForData(bitmap: Bitmap): ArtisticStyleTransferStepResult {
         val croppedCanvas = Canvas(croppedImage)
         croppedCanvas.drawBitmap(bitmap, frameToCropTransform, null)
 
@@ -137,7 +133,7 @@ class ArtisticStyleTransferVideoProcessorStep(
 
         val finalBitmapCanvas = Canvas(finalImage)
 
-        val blendMode = stepConfig.blendMode
+        val blendMode = stepConfig.blendMode.blendMode
         if (blendMode != null) {
             when (stepConfig.sourcesOrder) {
                 SourcesOrder.FORWARD -> {
@@ -159,7 +155,7 @@ class ArtisticStyleTransferVideoProcessorStep(
             finalBitmapCanvas.drawBitmap(styledBitmap, cropToFrameTransform, null)
         }
 
-        return finalImage
+        return ArtisticStyleTransferStepResult(bitmap, styledBitmap, finalImage)
     }
 
     private fun applyForData(rgbBytes: ByteArray, width: Int, height: Int): Bitmap {
@@ -170,15 +166,4 @@ class ArtisticStyleTransferVideoProcessorStep(
         )
         return result.toBitmap()
     }
-
-    data class StyleTransferConfig(
-        var context: Context,
-        var style: Style,
-        var blendMode: BlendMode? = null,
-        var sourcesOrder: SourcesOrder = SourcesOrder.FORWARD,
-        var maskAlpha: Int = 255
-
-    ) : StepConfig()
-
-
 }

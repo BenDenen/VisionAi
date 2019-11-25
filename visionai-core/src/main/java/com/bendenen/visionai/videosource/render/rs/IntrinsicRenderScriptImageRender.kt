@@ -66,9 +66,6 @@ internal class IntrinsicRenderScriptImageRender(
         // Run processing pass
         scriptC.forEach(outputAllocation)
 
-        outputAllocation.copyTo(rgbByteArray)
-//        listener.onNewRGBBytes(rgbByteArray)
-
         if (listener.useBitmap()) {
             if (!::bitmap.isInitialized) {
                 bitmap = Bitmap.createBitmap(
@@ -78,11 +75,11 @@ internal class IntrinsicRenderScriptImageRender(
                 )
             }
             outputAllocation.copyTo(bitmap)
-//            listener.onNewBitmap(bitmap)
+            listener.onNewBitmap(bitmap)
+        } else {
+            outputAllocation.copyTo(rgbByteArray)
+            listener.onNewRGBBytes(rgbByteArray)
         }
-
-        // For debug
-        listener.onNewData(rgbByteArray, bitmap)
     }
 
     override fun release() {

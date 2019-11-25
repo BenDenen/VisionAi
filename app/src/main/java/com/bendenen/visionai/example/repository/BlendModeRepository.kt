@@ -1,13 +1,13 @@
 package com.bendenen.visionai.example.repository
 
-import android.graphics.BlendMode
+import com.bendenen.visionai.tflite.styletransfer.step.StyleTransferBlendMode
 
 interface BlendModeRepository {
 
-    suspend fun getBlendModeList(): List<BlendMode>
+    suspend fun getBlendModeList(): List<StyleTransferBlendMode>
 
     class Impl() : BlendModeRepository {
-        override suspend fun getBlendModeList(): List<BlendMode>  = BlendMode.values().toList()
+        override suspend fun getBlendModeList(): List<StyleTransferBlendMode> =
+            StyleTransferBlendMode.values().toList()
     }
-
 }

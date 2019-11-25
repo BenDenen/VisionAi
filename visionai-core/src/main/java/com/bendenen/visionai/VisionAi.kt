@@ -5,6 +5,7 @@ import android.util.Log
 import com.bendenen.visionai.outputencoder.OutputEncoder
 import com.bendenen.visionai.outputencoder.mediamuxer.MediaMuxerOutputEncoderImpl
 import com.bendenen.visionai.videoprocessor.StepConfig
+import com.bendenen.visionai.videoprocessor.StepResult
 import com.bendenen.visionai.videoprocessor.VideoProcessor
 import com.bendenen.visionai.videoprocessor.VideoProcessorListener
 import com.bendenen.visionai.videoprocessor.VideoProcessorStep
@@ -20,8 +21,12 @@ import kotlin.coroutines.CoroutineContext
 object VisionAi : VideoProcessorListener, CoroutineScope {
 
     interface ResultListener {
-        fun onFrameResult(bitmap: Bitmap)
+        fun onStepsResult(bitmap: Bitmap)
         fun onFileResult(filePath: String)
+    }
+
+    interface VideoProcessorStepListener {
+        fun onStepResult(stepIndex: Int, sourceBitmap: Bitmap, stepResult: StepResult<*>)
     }
 
     val TAG = VisionAi::class.java.simpleName
@@ -32,6 +37,7 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
     private lateinit var outputEncoder: OutputEncoder
 
     private var resultListener: ResultListener? = null
+    private var videoProcessorStepListener: VideoProcessorStepListener? = null
 
     private val job = Job()
 
@@ -69,8 +75,12 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
         videoProcessor.setListener(VisionAi)
     }
 
-    suspend fun <T:StepConfig> initSteps(
-        videoProcessorSteps: List<VideoProcessorStep<T>>
+    fun setVideoProcessorStepListener(videoProcessorStepListener: VideoProcessorStepListener) {
+        this.videoProcessorStepListener = videoProcessorStepListener
+    }
+
+    suspend fun <C : StepConfig, R : StepResult<out Any>> initSteps(
+        videoProcessorSteps: List<VideoProcessorStep<C, R>>
     ) {
         assert(::videoProcessor.isInitialized)
         assert(::videoSource.isInitialized)
@@ -102,7 +112,7 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
     @Throws(IllegalArgumentException::class, AssertionError::class)
     suspend fun requestPreview(
         timestamp: Long
-    ): Bitmap {
+    ): StepResult<out Any> {
         assert(::videoSource.isInitialized)
         assert(::videoProcessor.isInitialized)
         require(videoSource is MediaFileVideoSource)
@@ -131,11 +141,15 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
         job.cancel()
     }
 
-    override fun onNewFrameProcessed(bitmap: Bitmap) {
-        outputEncoder.encodeBitmap(Bitmap.createBitmap(bitmap))
+    override fun onStepResult(stepIndex: Int, sourceBitmap: Bitmap, stepResult: StepResult<*>) {
+        videoProcessorStepListener?.onStepResult(stepIndex, sourceBitmap, stepResult)
+    }
+
+    override fun onNewFrameProcessed(stepResult: StepResult<*>) {
+        outputEncoder.encodeBitmap(Bitmap.createBitmap(stepResult.getBitmapForNextStep()))
         resultListener?.let {
             launch {
-                it.onFrameResult(bitmap)
+                it.onStepsResult(stepResult.getBitmapForNextStep())
             }
         }
     }

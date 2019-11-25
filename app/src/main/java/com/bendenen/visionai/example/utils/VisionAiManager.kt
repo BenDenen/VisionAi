@@ -1,11 +1,11 @@
 package com.bendenen.visionai.example.utils
 
 import android.app.Application
-import android.graphics.Bitmap
 import android.net.Uri
 import com.bendenen.visionai.VisionAi
 import com.bendenen.visionai.VisionAiConfig
 import com.bendenen.visionai.videoprocessor.StepConfig
+import com.bendenen.visionai.videoprocessor.StepResult
 import com.bendenen.visionai.videoprocessor.VideoProcessorStep
 import java.io.File
 
@@ -20,9 +20,9 @@ interface VisionAiManager {
 
     fun start(resultListener: VisionAi.ResultListener)
 
-    suspend fun getPreview(timestamp: Long): Bitmap
+    suspend fun getPreview(timestamp: Long): StepResult<out Any>
 
-    suspend fun <T:StepConfig> initSteps(videoProcessorSteps: List<VideoProcessorStep<T>>)
+    suspend fun <C : StepConfig, R : StepResult<out Any>> initSteps(videoProcessorSteps: List<VideoProcessorStep<C, R>>)
 
     suspend fun updateConfig(stepIndex: Int, config: StepConfig)
 
@@ -48,10 +48,12 @@ interface VisionAiManager {
             VisionAi.start(resultListener)
         }
 
-        override suspend fun getPreview(timestamp: Long): Bitmap =
+        override suspend fun getPreview(timestamp: Long): StepResult<out Any> =
             VisionAi.requestPreview(timestamp)
 
-        override suspend fun <T:StepConfig> initSteps(videoProcessorSteps: List<VideoProcessorStep<T>>) {
+        override suspend fun <C : StepConfig, R : StepResult<out Any>> initSteps(
+            videoProcessorSteps: List<VideoProcessorStep<C, R>>
+        ) {
             VisionAi.initSteps(videoProcessorSteps)
         }
 

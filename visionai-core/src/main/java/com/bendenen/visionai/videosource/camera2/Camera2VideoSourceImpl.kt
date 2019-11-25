@@ -13,7 +13,6 @@ import android.hardware.camera2.CameraManager
 import android.hardware.camera2.CaptureRequest
 import android.hardware.camera2.CaptureResult
 import android.hardware.camera2.TotalCaptureResult
-import android.net.Uri
 import android.os.Handler
 import android.os.HandlerThread
 import android.renderscript.RenderScript
@@ -210,48 +209,49 @@ internal class Camera2VideoSourceImpl(
 
             cameraDevice?.let { camera ->
 
-                val previewRequestBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW).apply {
-                    addTarget(imageRender.getSurface())
-                }
+                val previewRequestBuilder =
+                    camera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW).apply {
+                        addTarget(imageRender.getSurface())
+                    }
 
                 camera.createCaptureSession(
-                        listOf(imageRender.getSurface()),
-                        object : CameraCaptureSession.StateCallback() {
-                            override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
-                                cameraOpenCloseLock.acquire()
-                                // The camera is already closed
-                                if (cameraDevice == null) {
-                                    cameraOpenCloseLock.release()
-                                    return
-                                }
-                                // When the session is ready, we start displaying the preview.
-                                captureSession = cameraCaptureSession
-
-                                try {
-                                    // Auto focus should be continuous for camera preview.
-                                    previewRequestBuilder.set(
-                                            CaptureRequest.CONTROL_AF_MODE,
-                                            CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
-                                    )
-
-                                    // Finally, we start displaying the camera preview.
-                                    cameraCaptureSession.setRepeatingRequest(
-                                            previewRequestBuilder.build(),
-                                            captureCallback,
-                                            backgroundHandler
-                                    )
-                                } catch (e: CameraAccessException) {
-                                    e.printStackTrace()
-                                } finally {
-                                    cameraOpenCloseLock.release()
-                                }
+                    listOf(imageRender.getSurface()),
+                    object : CameraCaptureSession.StateCallback() {
+                        override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
+                            cameraOpenCloseLock.acquire()
+                            // The camera is already closed
+                            if (cameraDevice == null) {
+                                cameraOpenCloseLock.release()
+                                return
                             }
+                            // When the session is ready, we start displaying the preview.
+                            captureSession = cameraCaptureSession
 
-                            override fun onConfigureFailed(cameraCaptureSession: CameraCaptureSession) {
-                                // TODO: Proceed edge case
+                            try {
+                                // Auto focus should be continuous for camera preview.
+                                previewRequestBuilder.set(
+                                    CaptureRequest.CONTROL_AF_MODE,
+                                    CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE
+                                )
+
+                                // Finally, we start displaying the camera preview.
+                                cameraCaptureSession.setRepeatingRequest(
+                                    previewRequestBuilder.build(),
+                                    captureCallback,
+                                    backgroundHandler
+                                )
+                            } catch (e: CameraAccessException) {
+                                e.printStackTrace()
+                            } finally {
+                                cameraOpenCloseLock.release()
                             }
-                        },
-                        null
+                        }
+
+                        override fun onConfigureFailed(cameraCaptureSession: CameraCaptureSession) {
+                            // TODO: Proceed edge case
+                        }
+                    },
+                    null
                 )
             }
         } catch (e: CameraAccessException) {
@@ -276,12 +276,12 @@ internal class Camera2VideoSourceImpl(
                 }
 
                 val map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-                        ?: continue
+                    ?: continue
 
                 previewSize = chooseOptimalSize(
-                        choices = map.getOutputSizes(SurfaceTexture::class.java),
-                        width = width,
-                        height = height
+                    choices = map.getOutputSizes(SurfaceTexture::class.java),
+                    width = width,
+                    height = height
                 )
 
                 /* Orientation of the camera sensor */

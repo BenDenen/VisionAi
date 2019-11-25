@@ -16,6 +16,7 @@ import com.bendenen.visionai.example.screens.artisticstyletransfer.usecase.GetBl
 import com.bendenen.visionai.example.screens.artisticstyletransfer.usecase.GetStyleListUseCase
 import com.bendenen.visionai.example.utils.MutableLiveUnitEvent
 import com.bendenen.visionai.tflite.styletransfer.step.Style
+import com.bendenen.visionai.tflite.styletransfer.step.StyleTransferBlendMode
 import kotlinx.coroutines.launch
 
 class ArtisticStyleTransferViewModel(
@@ -39,12 +40,14 @@ class ArtisticStyleTransferViewModel(
     val blendModeList = MutableLiveData<List<BlendModeItem>>()
 
     init {
-        viewModelScope.launch{
+        viewModelScope.launch {
             styleList.postValue(getStyleListUseCase.getStyleList())
-            val itemList = mutableListOf<BlendModeItem>()
-            itemList.add(0, BlendModeItem(null, "Off"))
-            itemList.addAll(getBlendModeListUseCase.getBlendModeList().map { BlendModeItem(it,it.name) })
-            blendModeList.postValue(itemList)
+            blendModeList.postValue(getBlendModeListUseCase.getBlendModeList().map {
+                BlendModeItem(
+                    it,
+                    it.name
+                )
+            })
         }
     }
 
@@ -78,7 +81,7 @@ class ArtisticStyleTransferViewModel(
         }
     }
 
-    override fun onBlendModeClick(blendMode: BlendMode?) {
+    override fun onBlendModeClick(blendMode: StyleTransferBlendMode) {
         viewModelScope.launch {
             isLoading.postValue(true)
             styleTransferFunctionsUseCase.setBlendMode(blendMode)
@@ -91,7 +94,7 @@ class ArtisticStyleTransferViewModel(
         addNewStyleEvent.sendEvent()
     }
 
-    override fun onFrameResult(bitmap: Bitmap) {
+    override fun onStepsResult(bitmap: Bitmap) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 

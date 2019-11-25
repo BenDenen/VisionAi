@@ -1,15 +1,16 @@
 package com.bendenen.visionai.example.screens.artisticstyletransfer.usecase
 
-import android.graphics.BlendMode
 import com.bendenen.visionai.example.repository.BlendModeRepository
+import com.bendenen.visionai.tflite.styletransfer.step.StyleTransferBlendMode
 
 interface GetBlendModeListUseCase {
 
-    suspend fun getBlendModeList() : List<BlendMode>
+    suspend fun getBlendModeList(): List<StyleTransferBlendMode>
 
     class Impl(
         private val blendModeRepository: BlendModeRepository
-    ):GetBlendModeListUseCase {
-        override suspend fun getBlendModeList(): List<BlendMode> = blendModeRepository.getBlendModeList()
+    ) : GetBlendModeListUseCase {
+        override suspend fun getBlendModeList(): List<StyleTransferBlendMode> =
+            blendModeRepository.getBlendModeList()
     }
 }

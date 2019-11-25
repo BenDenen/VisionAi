@@ -2,9 +2,9 @@ package com.bendenen.visionai.videoprocessor
 
 import android.graphics.Bitmap
 
-abstract class VideoProcessorStep<T>(
-    protected val stepConfig: T
-) where T : StepConfig {
+abstract class VideoProcessorStep<C, R>(
+    protected val stepConfig: C
+) where C : StepConfig, R: StepResult<out Any> {
 
     abstract fun getWidthForNextStep(): Int
 
@@ -13,14 +13,14 @@ abstract class VideoProcessorStep<T>(
     protected abstract suspend fun initWithConfig()
 
     protected abstract suspend fun updateWithConfig(
-        newConfig: T
+        newConfig: C
     )
 
     internal fun getConfig() = stepConfig
 
     internal suspend fun init() = initWithConfig()
 
-    internal suspend fun updateConfig(stepConfig: T) {
+    internal suspend fun updateConfig(stepConfig: C) {
         stepConfig.videoSourceWidth = this.stepConfig.videoSourceWidth
         stepConfig.videoSourceHeight = this.stepConfig.videoSourceHeight
         updateWithConfig(stepConfig)
@@ -28,5 +28,5 @@ abstract class VideoProcessorStep<T>(
 
     abstract fun applyForData(
         bitmap: Bitmap
-    ): Bitmap
+    ): R
 }
