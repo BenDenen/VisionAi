@@ -1,50 +1,62 @@
 package com.bendenen.visionai.tflite.styletransfer.step
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.BlendMode
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
 import com.bendenen.visionai.tflite.styletransfer.ArtisticStyleTransfer
 import com.bendenen.visionai.tflite.styletransfer.ArtisticStyleTransferImpl
-import com.bendenen.visionai.videoprocessor.ProcessorStep
+import com.bendenen.visionai.videoprocessor.VideoProcessorStep
 import com.bendenen.visionai.visionai.shared.utils.getTransformationMatrix
 import com.bendenen.visionai.visionai.shared.utils.toBitmap
 import com.bendenen.visionai.visionai.shared.utils.toByteArray
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-class ArtisticStyleTransferStep(
-    context: Context,
-    private val config: Config
-) : ProcessorStep {
+class ArtisticStyleTransferVideoProcessorStep(
+    styleTransferConfig: StyleTransferConfig
+) : VideoProcessorStep<StyleTransferConfig, ArtisticStyleTransferStepResult>(
+    styleTransferConfig
+) {
 
-    private val artisticStyleTransfer: ArtisticStyleTransfer
-    private var croppedImage: Bitmap
+    private lateinit var artisticStyleTransfer: ArtisticStyleTransfer
+    private lateinit var croppedImage: Bitmap
 
     private lateinit var finalImage: Bitmap
     private lateinit var frameToCropTransform: Matrix
     private lateinit var cropToFrameTransform: Matrix
 
-    init {
+    override fun getWidthForNextStep(): Int {
+        assert(::finalImage.isInitialized)
+        return finalImage.width
+    }
+
+    override fun getHeightForNextStep(): Int {
+        assert(::finalImage.isInitialized)
+        return finalImage.height
+    }
+
+    override suspend fun initWithConfig() = withContext(Dispatchers.IO) {
+
         artisticStyleTransfer = ArtisticStyleTransferImpl(
-            context
+            stepConfig.context
         )
         croppedImage = Bitmap.createBitmap(
             artisticStyleTransfer.getContentImageSize(),
             artisticStyleTransfer.getContentImageSize(),
             Bitmap.Config.ARGB_8888
         )
-        val styleBitmap = when (config.style) {
+        val styleBitmap = when (val style = stepConfig.style) {
             is Style.AssetStyle -> {
-                BitmapFactory.decodeStream(context.assets.open(config.style.styleFileName))
+                BitmapFactory.decodeStream(stepConfig.context.assets.open(style.styleFileName))
             }
             is Style.PhotoUriStyle -> {
                 val inputStream =
-                    context.contentResolver.openInputStream(config.style.styleFileUri)!!
+                    stepConfig.context.contentResolver.openInputStream(style.styleFileUri)!!
                 BitmapFactory.decodeStream(inputStream)
             }
-            else -> throw IllegalArgumentException("Unknown Style type : ${config.style::class.java.simpleName}")
+            else -> throw IllegalArgumentException("Unknown Style type : ${stepConfig.style::class.java.simpleName}")
         }
 
 
@@ -72,30 +84,15 @@ class ArtisticStyleTransferStep(
         } else {
             artisticStyleTransfer.setStyle(styleBitmap)
         }
-    }
 
-    override fun getWidthForNextStep(): Int {
-        assert(::finalImage.isInitialized)
-        return finalImage.width
-    }
-
-    override fun getHeightForNextStep(): Int {
-        assert(::finalImage.isInitialized)
-        return finalImage.height
-    }
-
-    override fun init(
-        videoSourceWidth: Int,
-        videoSourceHeight: Int
-    ) {
         finalImage = Bitmap.createBitmap(
-            videoSourceWidth,
-            videoSourceHeight,
+            stepConfig.videoSourceWidth,
+            stepConfig.videoSourceHeight,
             Bitmap.Config.ARGB_8888
         )
         frameToCropTransform = getTransformationMatrix(
-            videoSourceWidth,
-            videoSourceHeight,
+            stepConfig.videoSourceWidth,
+            stepConfig.videoSourceHeight,
             artisticStyleTransfer.getContentImageSize(),
             artisticStyleTransfer.getContentImageSize(),
             0,
@@ -106,8 +103,28 @@ class ArtisticStyleTransferStep(
         }
     }
 
-    override fun applyForData(bitmap: Bitmap): Bitmap {
+    override suspend fun updateWithConfig(newConfig: StyleTransferConfig) {
+        if (stepConfig.style != newConfig.style) {
+            stepConfig.apply {
+                this.context = newConfig.context
+                this.style = newConfig.style
+                this.blendMode = newConfig.blendMode
+                this.sourcesOrder = newConfig.sourcesOrder
+                this.maskAlpha = newConfig.maskAlpha
+            }
+            initWithConfig()
+            return
+        }
+        stepConfig.apply {
+            this.context = newConfig.context
+            this.style = newConfig.style
+            this.blendMode = newConfig.blendMode
+            this.sourcesOrder = newConfig.sourcesOrder
+            this.maskAlpha = newConfig.maskAlpha
+        }
+    }
 
+    override fun applyForData(bitmap: Bitmap): ArtisticStyleTransferStepResult {
         val croppedCanvas = Canvas(croppedImage)
         croppedCanvas.drawBitmap(bitmap, frameToCropTransform, null)
 
@@ -116,21 +133,21 @@ class ArtisticStyleTransferStep(
 
         val finalBitmapCanvas = Canvas(finalImage)
 
-        val blendMode = config.blendMode
+        val blendMode = stepConfig.blendMode.blendMode
         if (blendMode != null) {
-            when (config.sourcesOrder) {
+            when (stepConfig.sourcesOrder) {
                 SourcesOrder.FORWARD -> {
                     finalBitmapCanvas.drawBitmap(bitmap, Matrix(), null)
                     finalBitmapCanvas.drawBitmap(styledBitmap, cropToFrameTransform, Paint().also {
                         it.blendMode = blendMode
-                        it.alpha = config.maskAlpha
+                        it.alpha = stepConfig.maskAlpha
                     })
                 }
                 SourcesOrder.BACKWARD -> {
                     finalBitmapCanvas.drawBitmap(styledBitmap, cropToFrameTransform, null)
                     finalBitmapCanvas.drawBitmap(bitmap, Matrix(), Paint().also {
                         it.blendMode = blendMode
-                        it.alpha = config.maskAlpha
+                        it.alpha = stepConfig.maskAlpha
                     })
                 }
             }
@@ -138,9 +155,7 @@ class ArtisticStyleTransferStep(
             finalBitmapCanvas.drawBitmap(styledBitmap, cropToFrameTransform, null)
         }
 
-
-
-        return finalImage
+        return ArtisticStyleTransferStepResult(bitmap, styledBitmap, finalImage)
     }
 
     private fun applyForData(rgbBytes: ByteArray, width: Int, height: Int): Bitmap {
@@ -151,12 +166,4 @@ class ArtisticStyleTransferStep(
         )
         return result.toBitmap()
     }
-
-    data class Config(
-        val style: Style,
-        val blendMode: BlendMode? = null,
-        val sourcesOrder: SourcesOrder = SourcesOrder.FORWARD,
-        val maskAlpha: Int = 255
-
-    )
 }

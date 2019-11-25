@@ -48,6 +48,9 @@ class MediaCodecVideoSourceImpl(
 
     private var isFrameRendering = false
 
+    private lateinit var previewBitmap: Bitmap
+    private var lastRequestedTimestamp: Long = -1
+
     private val job = Job()
 
     override val coroutineContext: CoroutineContext
@@ -154,21 +157,14 @@ class MediaCodecVideoSourceImpl(
     ) = getPreviewForTime(timestamp)
 
     // Render actions
-
-    // For debug
-    override fun onNewData(rgbBytes: ByteArray, bitmap: Bitmap) {
-        videoSourceListener?.onNewData(rgbBytes, bitmap)
+    override fun onNewRGBBytes(byteArray: ByteArray) {
+        videoSourceListener?.onNewFrame(byteArray)
         isFrameRendering = false
     }
 
-    override fun onNewRGBBytes(byteArray: ByteArray) {
-        // TODO: Change to use flag
-        videoSourceListener?.onNewFrame(byteArray)
-    }
-
     override fun onNewBitmap(bitmap: Bitmap) {
-//        videoSourceListener?.onNewBitmap(bitmap)
-//        isFrameRendering = false
+        videoSourceListener?.onNewBitmap(bitmap)
+        isFrameRendering = false
     }
 
     override fun useBitmap(): Boolean = useBitmap
@@ -179,11 +175,16 @@ class MediaCodecVideoSourceImpl(
     }
 
     private suspend fun getPreviewForTime(timestamp: Long): Bitmap =
-        withContext(Dispatchers.IO) {
-            val mediaMetadataRetriever = MediaMetadataRetriever()
-
-            mediaMetadataRetriever.setDataSource(application, videoUri)
-            return@withContext mediaMetadataRetriever.getFrameAtTime(timestamp)
+        if (::previewBitmap.isInitialized && timestamp == lastRequestedTimestamp) {
+            previewBitmap
+        } else {
+            withContext(Dispatchers.IO) {
+                val mediaMetadataRetriever = MediaMetadataRetriever()
+                mediaMetadataRetriever.setDataSource(application, videoUri)
+                previewBitmap = mediaMetadataRetriever.getFrameAtTime(timestamp)
+                lastRequestedTimestamp = timestamp
+                return@withContext previewBitmap
+            }
         }
 
     private suspend fun startDataRetrieving() =

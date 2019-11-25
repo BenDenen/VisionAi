@@ -2,13 +2,14 @@ package com.bendenen.visionai.example.screens.artisticstyletransfer.usecase
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BlendMode
 import android.net.Uri
 import android.os.Environment
 import com.bendenen.visionai.example.utils.VisionAiManager
-import com.bendenen.visionai.tflite.styletransfer.step.ArtisticStyleTransferStep
+import com.bendenen.visionai.tflite.styletransfer.step.ArtisticStyleTransferVideoProcessorStep
 import com.bendenen.visionai.tflite.styletransfer.step.SourcesOrder
 import com.bendenen.visionai.tflite.styletransfer.step.Style
+import com.bendenen.visionai.tflite.styletransfer.step.StyleTransferBlendMode
+import com.bendenen.visionai.tflite.styletransfer.step.StyleTransferConfig
 import java.io.File
 
 interface ArtisticStyleTransferFunctionsUseCase {
@@ -20,20 +21,21 @@ interface ArtisticStyleTransferFunctionsUseCase {
 
     suspend fun getPreview(): Bitmap
 
-    fun setStyle(style: Style)
+    suspend fun initStyle(style: Style)
 
-    fun setBlendMode(blendMode: BlendMode?)
+    suspend fun setBlendMode(blendMode: StyleTransferBlendMode)
 
-    fun setSourceOrder(sourceOrder: SourcesOrder)
+    suspend fun setSourceOrder(sourceOrder: SourcesOrder)
 
-    fun setTransparency(alpha: Int)
+    suspend fun setTransparency(alpha: Int)
 
     class Impl(
         private val context: Context,
         private val visionAiManager: VisionAiManager
     ) : ArtisticStyleTransferFunctionsUseCase {
 
-        private var config: ArtisticStyleTransferStep.Config = ArtisticStyleTransferStep.Config(
+        private var styleTransferConfig: StyleTransferConfig = StyleTransferConfig(
+            context,
             Style.AssetStyle("", "")
         )
 
@@ -49,26 +51,38 @@ interface ArtisticStyleTransferFunctionsUseCase {
         }
 
         override suspend fun getPreview(): Bitmap =
-            visionAiManager.getPreview(1000)
+            visionAiManager.getPreview(1000).getBitmapForNextStep()
 
-        override fun setStyle(style: Style) {
-            config = config.copy(style = style)
-            visionAiManager.setSteps(listOf(ArtisticStyleTransferStep(context, config)))
+        override suspend fun initStyle(style: Style) {
+            styleTransferConfig = styleTransferConfig.copy(style = style)
+            visionAiManager.initSteps(
+                listOf(
+                    ArtisticStyleTransferVideoProcessorStep(
+                        styleTransferConfig
+                    )
+                )
+            )
         }
 
-        override fun setBlendMode(blendMode: BlendMode?) {
-            config = config.copy(blendMode = blendMode)
-            visionAiManager.setSteps(listOf(ArtisticStyleTransferStep(context, config)))
+        override suspend fun setBlendMode(blendMode: StyleTransferBlendMode) {
+            styleTransferConfig = styleTransferConfig.copy(blendMode = blendMode)
+            visionAiManager.updateConfig(
+                0, styleTransferConfig
+            )
         }
 
-        override fun setSourceOrder(sourceOrder: SourcesOrder) {
-            config = config.copy(sourcesOrder = sourceOrder)
-            visionAiManager.setSteps(listOf(ArtisticStyleTransferStep(context, config)))
+        override suspend fun setSourceOrder(sourceOrder: SourcesOrder) {
+            styleTransferConfig = styleTransferConfig.copy(sourcesOrder = sourceOrder)
+            visionAiManager.updateConfig(
+                0, styleTransferConfig
+            )
         }
 
-        override fun setTransparency(alpha: Int) {
-            config = config.copy(maskAlpha = alpha)
-            visionAiManager.setSteps(listOf(ArtisticStyleTransferStep(context, config)))
+        override suspend fun setTransparency(alpha: Int) {
+            styleTransferConfig = styleTransferConfig.copy(maskAlpha = alpha)
+            visionAiManager.updateConfig(
+                0, styleTransferConfig
+            )
         }
     }
 }

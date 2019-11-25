@@ -1,6 +1,5 @@
 package com.bendenen.visionai.example.screens.artisticstyletransfer.adapters
 
-import android.graphics.BlendMode
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,6 +7,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bendenen.visionai.example.R
+import com.bendenen.visionai.tflite.styletransfer.step.StyleTransferBlendMode
 import kotlinx.android.synthetic.main.item_blend_mode.view.*
 
 class BlendModeAdapter(
@@ -62,7 +62,7 @@ class BlendModeAdapter(
 }
 
 data class BlendModeItem(
-    val blendMode: BlendMode?,
+    val blendMode: StyleTransferBlendMode,
     val name: String
 )
 
@@ -76,5 +76,5 @@ class BlendModeDiffCallback : DiffUtil.ItemCallback<BlendModeItem>() {
 }
 
 interface BlendModeAdapterCallback {
-    fun onBlendModeClick(blendMode: BlendMode?)
+    fun onBlendModeClick(blendMode: StyleTransferBlendMode)
 }
