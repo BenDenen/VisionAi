@@ -2,7 +2,7 @@ package com.bendenen.visionai.tflite.styletransfer
 
 import android.graphics.Bitmap
 
-interface ArtisticStyleTransfer {
+interface ArtisticStyleTransferMlExecutor {
 
     fun setStyle(styleBitmap: Bitmap)
 

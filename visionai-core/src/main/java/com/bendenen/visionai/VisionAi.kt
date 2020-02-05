@@ -94,8 +94,8 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
                 videoSourceHeight = height
             }
             step.init()
-            width = step.getWidthForNextStep()
-            height = step.getHeightForNextStep()
+            width = step.getNextStepWidth()
+            height = step.getNextStepHeight()
         }
 
         videoProcessor.setSteps(videoProcessorSteps)

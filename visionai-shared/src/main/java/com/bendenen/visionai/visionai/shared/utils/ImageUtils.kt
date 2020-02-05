@@ -1,8 +1,13 @@
 package com.bendenen.visionai.visionai.shared.utils
 
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
 import android.graphics.Matrix
+import android.graphics.Paint
+import android.media.ThumbnailUtils
 import java.nio.ByteBuffer
 
 fun getTransformationMatrix(
@@ -55,6 +60,11 @@ fun getTransformationMatrix(
     return matrix
 }
 
+fun getSquaredBitmap(bitmap: Bitmap): Bitmap {
+    val dimension = bitmap.width.coerceAtMost(bitmap.height)
+    return ThumbnailUtils.extractThumbnail(bitmap, dimension, dimension)
+}
+
 fun Bitmap.toNormalizedFloatArray(): FloatArray {
 
     val intValues = IntArray(this.width * this.height)
@@ -80,10 +90,26 @@ fun Bitmap.toByteArray(): ByteArray {
     val byteArray = ByteArray(this.width * this.height * channelNum)
 
     for ((index, pixel) in intValues.withIndex()) {
-        byteArray[index * channelNum + 0] = (pixel shr 16 and 0xFF).toByte()
-        byteArray[index * channelNum + 1] = (pixel shr 8 and 0xFF).toByte()
-        byteArray[index * channelNum + 2] = (pixel and 0xFF).toByte()
-        byteArray[index * channelNum + 3] = Color.alpha(pixel).toByte()
+        byteArray[index * channelNum + 0] = Color.alpha(pixel).toByte()
+        byteArray[index * channelNum + 1] = Color.red(pixel).toByte()
+        byteArray[index * channelNum + 2] = Color.green(pixel).toByte()
+        byteArray[index * channelNum + 3] = Color.blue(pixel).toByte()
+    }
+    return byteArray
+}
+
+fun Bitmap.toThreeChannelByteArray(): ByteArray {
+
+    val intValues = IntArray(this.width * this.height)
+    this.getPixels(intValues, 0, this.width, 0, 0, this.width, this.height)
+
+    val channelNum = 3
+    val byteArray = ByteArray(this.width * this.height * channelNum)
+
+    for ((index, pixel) in intValues.withIndex()) {
+        byteArray[index * channelNum + 0] = Color.red(pixel).toByte()
+        byteArray[index * channelNum + 1] = Color.green(pixel).toByte()
+        byteArray[index * channelNum + 2] = Color.blue(pixel).toByte()
     }
     return byteArray
 }
@@ -108,41 +134,73 @@ fun Bitmap.toNormalizedFloatByteBuffer(
     }
 }
 
-@Throws(IllegalArgumentException::class)
-fun Array<Array<Array<FloatArray>>>.toBitmap(): Bitmap {
-    require(this.size == 1) { "The first dimension of Array is too big ${this.size}" }
-    val bitmapContentArray = this[0]
-    val width = bitmapContentArray.size
-    val height = bitmapContentArray[0].size
-    val channels = bitmapContentArray[0][0].size
-    require(channels == 3) { "Channels should be equals 3 for RGB image but it is $channels" }
-    val pixelValues = IntArray(width * height)
-    var index = 0
-    for (w in 0 until width) {
-        for (h in 0 until height) {
-            val r = (bitmapContentArray[w][h][0] * 255).toInt()
-            val g = (bitmapContentArray[w][h][1] * 255).toInt()
-            val b = (bitmapContentArray[w][h][2] * 255).toInt()
-            pixelValues[index++] = Color.rgb(r, g, b)
-        }
+fun ByteArray.toNormalizedFloatByteBuffer(
+    buffer: ByteBuffer,
+    mean: Float
+) {
+    buffer.rewind()
+    this.forEach {
+        buffer.putFloat(((2 * it.toPositiveInt()) / mean) - 1)
     }
-    return Bitmap.createBitmap(pixelValues, width, height, Bitmap.Config.ARGB_8888)
 }
 
 fun ByteArray.toBitmap(
     width: Int,
     height: Int
-) : Bitmap {
+): Bitmap {
     val pixelValues = IntArray(width * height)
     var intIndex = 0
-    val channelNum = 3
+    val channelNum = 4
 
 
     for ((index, pixel) in pixelValues.withIndex()) {
-        val r = this[index * channelNum + 0].toInt()
-        val g = this[index * channelNum + 1].toInt()
-        val b = this[index * channelNum + 2].toInt()
-        pixelValues[intIndex++] = Color.rgb(r, g, b)
+        val a = this[index * channelNum + 0].toPositiveInt()
+        val r = this[index * channelNum + 1].toPositiveInt()
+        val g = this[index * channelNum + 2].toPositiveInt()
+        val b = this[index * channelNum + 3].toPositiveInt()
+        pixelValues[intIndex++] = Color.argb(a, r, g, b)
     }
     return Bitmap.createBitmap(pixelValues, width, height, Bitmap.Config.ARGB_8888)
+}
+
+fun Byte.toPositiveInt() = toInt() and 0xFF
+
+/**
+ *
+ * @param bmp input bitmap
+ * @param contrast 0..10 1 is default
+ * @param brightness -255..255 0 is default
+ * @return new bitmap
+ */
+fun changeBitmapContrastBrightness(bmp: Bitmap, contrast: Float, brightness: Float): Bitmap {
+    val cm = ColorMatrix(
+        floatArrayOf(
+            contrast,
+            0f,
+            0f,
+            0f,
+            brightness,
+            0f,
+            contrast,
+            0f,
+            0f,
+            brightness,
+            0f,
+            0f,
+            contrast,
+            0f,
+            brightness,
+            0f,
+            0f,
+            0f,
+            1f,
+            0f
+        )
+    )
+    val ret = Bitmap.createBitmap(bmp.width, bmp.height, bmp.config)
+    val canvas = Canvas(ret)
+    val paint = Paint()
+    paint.colorFilter = ColorMatrixColorFilter(cm)
+    canvas.drawBitmap(bmp, Matrix(), paint)
+    return ret
 }

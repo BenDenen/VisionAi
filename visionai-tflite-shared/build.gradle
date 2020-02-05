@@ -33,6 +33,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     api project(':visionai-shared')
+
     api "org.tensorflow:tensorflow-lite:$tf_lite_version"
-    testImplementation 'junit:junit:4.12'
+    api "org.tensorflow:tensorflow-lite-gpu:$tf_lite_version"
 }

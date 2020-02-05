@@ -10,9 +10,9 @@ import org.tensorflow.lite.Interpreter
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class ArtisticStyleTransferImpl(
+class ArtisticStyleTransferMlExecutorImpl(
     context: Context
-) : ArtisticStyleTransfer {
+) : ArtisticStyleTransferMlExecutor {
 
     private var assetManager = context.assets
 
@@ -88,19 +88,7 @@ class ArtisticStyleTransferImpl(
             updateBottleNeck = false
         }
 
-        NativeImageUtilsWrapper.resizeAndNormalizeImage(
-            contentImageData,
-            imageWidth,
-            imageHeight,
-            CONTENT_IMAGE_SIZE,
-            CONTENT_IMAGE_SIZE,
-            contentImageFloatArrayBuffer
-        )
-
-        contentImageDataBuffer.rewind()
-        contentImageFloatArrayBuffer.forEach {
-            contentImageDataBuffer.putFloat(it)
-        }
+        contentImageData.toNormalizedFloatByteBuffer(contentImageDataBuffer, IMAGE_MEAN)
 
         val inputArray = arrayOf(contentImageDataBuffer, bottleNeckBuffer)
         val outputMap = HashMap<Int, Any>()
@@ -122,7 +110,7 @@ class ArtisticStyleTransferImpl(
     override fun getContentImageSize(): Int = CONTENT_IMAGE_SIZE
 
     override fun close() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        //TODO: Close
     }
 
     private fun getStyleImageTfLite() = Interpreter(

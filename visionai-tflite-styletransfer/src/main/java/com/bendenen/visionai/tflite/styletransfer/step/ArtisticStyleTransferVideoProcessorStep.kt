@@ -5,12 +5,13 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
-import com.bendenen.visionai.tflite.styletransfer.ArtisticStyleTransfer
-import com.bendenen.visionai.tflite.styletransfer.ArtisticStyleTransferImpl
+import com.bendenen.visionai.tflite.styletransfer.ArtisticStyleTransferMlExecutor
+import com.bendenen.visionai.tflite.styletransfer.ArtisticStyleTransferMlExecutorImpl
+import com.bendenen.visionai.tflite.styletransfer.utils.toBitmap
 import com.bendenen.visionai.videoprocessor.VideoProcessorStep
 import com.bendenen.visionai.visionai.shared.utils.getTransformationMatrix
-import com.bendenen.visionai.visionai.shared.utils.toBitmap
 import com.bendenen.visionai.visionai.shared.utils.toByteArray
+import com.bendenen.visionai.visionai.shared.utils.toThreeChannelByteArray
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -20,7 +21,7 @@ class ArtisticStyleTransferVideoProcessorStep(
     styleTransferConfig
 ) {
 
-    private lateinit var artisticStyleTransfer: ArtisticStyleTransfer
+    private lateinit var artisticStyleTransferMlExecutor: ArtisticStyleTransferMlExecutor
     private lateinit var croppedImage: Bitmap
 
     private lateinit var finalImage: Bitmap
@@ -39,12 +40,12 @@ class ArtisticStyleTransferVideoProcessorStep(
 
     override suspend fun initWithConfig() = withContext(Dispatchers.IO) {
 
-        artisticStyleTransfer = ArtisticStyleTransferImpl(
+        artisticStyleTransferMlExecutor = ArtisticStyleTransferMlExecutorImpl(
             stepConfig.context
         )
         croppedImage = Bitmap.createBitmap(
-            artisticStyleTransfer.getContentImageSize(),
-            artisticStyleTransfer.getContentImageSize(),
+            artisticStyleTransferMlExecutor.getContentImageSize(),
+            artisticStyleTransferMlExecutor.getContentImageSize(),
             Bitmap.Config.ARGB_8888
         )
         val styleBitmap = when (val style = stepConfig.style) {
@@ -60,29 +61,29 @@ class ArtisticStyleTransferVideoProcessorStep(
         }
 
 
-        if ((styleBitmap.width != artisticStyleTransfer.getStyleImageSize())
-            || (styleBitmap.height != artisticStyleTransfer.getStyleImageSize())
+        if ((styleBitmap.width != artisticStyleTransferMlExecutor.getStyleImageSize())
+            || (styleBitmap.height != artisticStyleTransferMlExecutor.getStyleImageSize())
         ) {
             val transform = getTransformationMatrix(
                 styleBitmap.width,
                 styleBitmap.height,
-                artisticStyleTransfer.getContentImageSize(),
-                artisticStyleTransfer.getContentImageSize(),
+                artisticStyleTransferMlExecutor.getContentImageSize(),
+                artisticStyleTransferMlExecutor.getContentImageSize(),
                 0,
                 false
             )
 
             val finalBitmap = Bitmap.createBitmap(
-                artisticStyleTransfer.getStyleImageSize(),
-                artisticStyleTransfer.getStyleImageSize(),
+                artisticStyleTransferMlExecutor.getStyleImageSize(),
+                artisticStyleTransferMlExecutor.getStyleImageSize(),
                 Bitmap.Config.ARGB_8888
             )
 
             val croppedCanvas = Canvas(finalBitmap)
             croppedCanvas.drawBitmap(styleBitmap, transform, null)
-            artisticStyleTransfer.setStyle(finalBitmap)
+            artisticStyleTransferMlExecutor.setStyle(finalBitmap)
         } else {
-            artisticStyleTransfer.setStyle(styleBitmap)
+            artisticStyleTransferMlExecutor.setStyle(styleBitmap)
         }
 
         finalImage = Bitmap.createBitmap(
@@ -93,8 +94,8 @@ class ArtisticStyleTransferVideoProcessorStep(
         frameToCropTransform = getTransformationMatrix(
             stepConfig.videoSourceWidth,
             stepConfig.videoSourceHeight,
-            artisticStyleTransfer.getContentImageSize(),
-            artisticStyleTransfer.getContentImageSize(),
+            artisticStyleTransferMlExecutor.getContentImageSize(),
+            artisticStyleTransferMlExecutor.getContentImageSize(),
             0,
             false
         )
@@ -124,12 +125,12 @@ class ArtisticStyleTransferVideoProcessorStep(
         }
     }
 
-    override fun applyForData(bitmap: Bitmap): ArtisticStyleTransferStepResult {
+    override suspend fun applyForData(bitmap: Bitmap): ArtisticStyleTransferStepResult {
         val croppedCanvas = Canvas(croppedImage)
         croppedCanvas.drawBitmap(bitmap, frameToCropTransform, null)
 
         val styledBitmap =
-            applyForData(croppedImage.toByteArray(), croppedImage.width, croppedImage.height)
+            applyForData(croppedImage.toThreeChannelByteArray(), croppedImage.width, croppedImage.height)
 
         val finalBitmapCanvas = Canvas(finalImage)
 
@@ -159,7 +160,7 @@ class ArtisticStyleTransferVideoProcessorStep(
     }
 
     private fun applyForData(rgbBytes: ByteArray, width: Int, height: Int): Bitmap {
-        val result = artisticStyleTransfer.styleTransform(
+        val result = artisticStyleTransferMlExecutor.styleTransform(
             rgbBytes,
             width,
             height

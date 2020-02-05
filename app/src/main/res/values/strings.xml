@@ -2,6 +2,7 @@
     <string name="app_name">Vision AI Sample</string>
 
     <string name="request_style_transfer">Style Transfer</string>
+    <string name="request_body_segmentation">Body Segmentation</string>
 
     <string name="request_processing">Processing</string>
     <string name="request_video">Request Video</string>
