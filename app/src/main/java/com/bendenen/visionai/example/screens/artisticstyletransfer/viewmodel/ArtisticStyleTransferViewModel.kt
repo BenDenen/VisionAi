@@ -1,7 +1,6 @@
 package com.bendenen.visionai.example.screens.artisticstyletransfer.viewmodel
 
 import android.graphics.Bitmap
-import android.graphics.BlendMode
 import android.net.Uri
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel

@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.bendenen.visionai.example.R
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ArtisticStyleTransferActivity
+import com.bendenen.visionai.example.screens.bodysegmentation.BodySegmentationActivity
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -23,6 +24,9 @@ class MainActivity : AppCompatActivity() {
         }
         request_style_transfer_button.setOnClickListener {
             startActivity(ArtisticStyleTransferActivity.getStartIntent(this))
+        }
+        request_body_segmentation_button.setOnClickListener {
+            startActivity(BodySegmentationActivity.getStartIntent(this))
         }
     }
 

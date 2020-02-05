@@ -6,9 +6,13 @@ abstract class VideoProcessorStep<C, R>(
     protected val stepConfig: C
 ) where C : StepConfig, R: StepResult<out Any> {
 
-    abstract fun getWidthForNextStep(): Int
+    protected abstract fun getWidthForNextStep(): Int
 
-    abstract fun getHeightForNextStep(): Int
+    internal fun getNextStepWidth() = getWidthForNextStep()
+
+    protected abstract fun getHeightForNextStep(): Int
+
+    internal fun getNextStepHeight() = getHeightForNextStep()
 
     protected abstract suspend fun initWithConfig()
 
@@ -26,7 +30,7 @@ abstract class VideoProcessorStep<C, R>(
         updateWithConfig(stepConfig)
     }
 
-    abstract fun applyForData(
+    abstract suspend fun applyForData(
         bitmap: Bitmap
     ): R
 }
