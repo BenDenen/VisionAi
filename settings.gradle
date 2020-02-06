@@ -1,1 +1,0 @@
-include ':app', ':visionai-core', ':visionai-tflite-styletransfer', ':visionai-shared', ':visionai-tflite-shared', ':visionai-tflite-bodysegmentation'

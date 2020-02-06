@@ -49,8 +49,8 @@ dependencies {
 
     //Remote Configuration Project Module
     implementation project(':visionai-core')
-    implementation project(':visionai-tflite-styletransfer')
-    implementation project(':visionai-tflite-bodysegmentation')
+    implementation project(':tflite:styletransfer')
+    implementation project(':tflite:bodysegmentation')
 
     implementation "androidx.appcompat:appcompat:$androidx_appcompat_version"
     implementation "androidx.core:core-ktx:$androidx_core_ktx_version"
