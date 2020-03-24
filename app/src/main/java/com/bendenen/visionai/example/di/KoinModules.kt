@@ -4,6 +4,7 @@ import com.bendenen.visionai.example.repository.BlendModeRepository
 import com.bendenen.visionai.example.repository.SegmentationModesRepository
 import com.bendenen.visionai.example.repository.StyleRepository
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ArtisticStyleTransferActivity
+import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.styles.StyleImageLoader
 import com.bendenen.visionai.example.screens.artisticstyletransfer.usecase.AddNewStyleUseCase
 import com.bendenen.visionai.example.screens.artisticstyletransfer.usecase.ArtisticStyleTransferFunctionsUseCase
 import com.bendenen.visionai.example.screens.artisticstyletransfer.usecase.GetBlendModeListUseCase
@@ -13,6 +14,8 @@ import com.bendenen.visionai.example.screens.bodysegmentation.BodySegmentationAc
 import com.bendenen.visionai.example.screens.bodysegmentation.usecase.BodySegmentationFunctionUseCase
 import com.bendenen.visionai.example.screens.bodysegmentation.usecase.GetSegmentationModeListUseCase
 import com.bendenen.visionai.example.screens.bodysegmentation.viewmodel.BodySegmentationViewModel
+import com.bendenen.visionai.example.screens.main.MainActivity
+import com.bendenen.visionai.example.screens.main.viewmodel.MainViewModel
 import com.bendenen.visionai.example.utils.VisionAiManager
 import org.koin.android.ext.koin.androidApplication
 import org.koin.android.ext.koin.androidContext
@@ -27,7 +30,14 @@ val appModule = module {
     single<SegmentationModesRepository> { SegmentationModesRepository.Impl() }
     single<VisionAiManager> { VisionAiManager.Impl(androidApplication()) }
 
+    scope(named<MainActivity>()) {
+        viewModel {
+            MainViewModel()
+        }
+    }
+
     scope(named<ArtisticStyleTransferActivity>()) {
+        scoped<StyleImageLoader> { StyleImageLoader.Impl(androidContext()) }
         scoped<AddNewStyleUseCase> { AddNewStyleUseCase.Impl(get()) }
         scoped<GetStyleListUseCase> { GetStyleListUseCase.Impl(get()) }
         scoped<ArtisticStyleTransferFunctionsUseCase> {

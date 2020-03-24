@@ -5,16 +5,30 @@ import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.bendenen.visionai.example.R
+import androidx.lifecycle.Observer
+import androidx.ui.core.setContent
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ArtisticStyleTransferActivity
 import com.bendenen.visionai.example.screens.bodysegmentation.BodySegmentationActivity
-import kotlinx.android.synthetic.main.activity_main.*
+import com.bendenen.visionai.example.screens.main.ui.MainScreenLayout
+import com.bendenen.visionai.example.screens.main.viewmodel.MainViewModel
+import org.koin.androidx.scope.currentScope
 
 class MainActivity : AppCompatActivity() {
 
+    private val viewModel by currentScope.inject<MainViewModel>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContent {
+            MainScreenLayout(
+                { viewModel.requestStyleTransfer() },
+                { viewModel.requestSegmentation() }
+            )
+        }
+    }
+
+    override fun onPostCreate(savedInstanceState: Bundle?) {
+        super.onPostCreate(savedInstanceState)
 
         if (!allPermissionsGranted() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             requestPermissions(
@@ -22,12 +36,14 @@ class MainActivity : AppCompatActivity() {
                 PERMISSIONS_REQUEST_CODE
             )
         }
-        request_style_transfer_button.setOnClickListener {
+
+        viewModel.requestStyleTransferEvent.observe(this, Observer {
             startActivity(ArtisticStyleTransferActivity.getStartIntent(this))
-        }
-        request_body_segmentation_button.setOnClickListener {
+        })
+
+        viewModel.requestSegmentationEvent.observe(this, Observer {
             startActivity(BodySegmentationActivity.getStartIntent(this))
-        }
+        })
     }
 
     private fun allPermissionsGranted(): Boolean {

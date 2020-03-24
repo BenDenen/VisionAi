@@ -8,6 +8,7 @@ import android.graphics.ColorMatrixColorFilter
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.media.ThumbnailUtils
+import android.util.Log
 import java.nio.ByteBuffer
 
 fun getTransformationMatrix(
@@ -134,7 +135,7 @@ fun Bitmap.toNormalizedFloatByteBuffer(
     }
 }
 
-fun ByteArray.toNormalizedFloatByteBuffer(
+@Synchronized fun ByteArray.toNormalizedFloatByteBuffer(
     buffer: ByteBuffer,
     mean: Float
 ) {

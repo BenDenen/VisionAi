@@ -21,7 +21,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         ndk {
-            abiFilters("arm64-v8a")
+            abiFilters?.add("arm64-v8a")
         }
     }
 

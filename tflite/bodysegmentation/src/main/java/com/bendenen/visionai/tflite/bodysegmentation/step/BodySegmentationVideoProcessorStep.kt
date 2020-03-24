@@ -62,7 +62,7 @@ class BodySegmentationVideoProcessorStep(
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override suspend fun applyForData(bitmap: Bitmap): BodySegmentationResult {
+    override fun applyForData(bitmap: Bitmap): BodySegmentationResult {
 
         val croppedCanvas = Canvas(croppedImage)
         croppedCanvas.drawBitmap(bitmap, frameToCropTransform, null)

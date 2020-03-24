@@ -6,6 +6,9 @@
 
     <string name="request_processing">Processing</string>
     <string name="request_video">Request Video</string>
+    <string name="video_is_not_selected">Video is not selected</string>
+    <string name="video_processing">Video processing</string>
+    <string name="video_loading">Video loading</string>
 
     <string name="input_surface">Input surface</string>
     <string name="record_video">Record Video</string>
@@ -14,7 +17,8 @@
     <string name="style_image">Style Image</string>
     <string name="play_button">Play button</string>
 
+    <string name="styles_title">Styles</string>
+    <string name="video_title">Video</string>
     <string name="add_new_style">Create New</string>
-
 
 </resources>

@@ -4,14 +4,13 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.provider.MediaStore
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import com.bendenen.visionai.example.R
-import com.bendenen.visionai.example.screens.artisticstyletransfer.adapters.BlendModeAdapter
-import com.bendenen.visionai.example.screens.artisticstyletransfer.adapters.StyleListAdapter
+import androidx.ui.core.setContent
+import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.ArtisticStyleTransferLayout
+import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.styles.StyleImageLoader
 import com.bendenen.visionai.example.screens.artisticstyletransfer.viewmodel.ArtisticStyleTransferViewModel
-import kotlinx.android.synthetic.main.activity_artistic_style_transfer.*
+import com.bendenen.visionai.tflite.styletransfer.step.Style
 import org.koin.androidx.scope.currentScope
 
 class ArtisticStyleTransferActivity : AppCompatActivity() {
@@ -20,61 +19,33 @@ class ArtisticStyleTransferActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_artistic_style_transfer)
-
-        val styleListAdapter = StyleListAdapter(viewModel)
-        style_list.adapter = styleListAdapter
-
-        val blendModeAdapter = BlendModeAdapter(viewModel)
-        blend_mode_list.adapter = blendModeAdapter
-
-        request_video.setOnClickListener {
-            viewModel.requestVideo()
+        setContent {
+            ArtisticStyleTransferLayout(
+                state = viewModel.state,
+                handler = viewModel.handler,
+                styleImageLoader = currentScope.inject<StyleImageLoader>().value
+            )
         }
 
-        viewModel.previewImage.observe(this, Observer {
-            input_surface.setImageBitmap(it)
-        })
-
         viewModel.requestVideoEvent.observe(this, Observer {
-            val galleryIntent = Intent(
+            val videoIntent = Intent(
                 Intent.ACTION_PICK,
                 MediaStore.Video.Media.EXTERNAL_CONTENT_URI
             )
             startActivityForResult(
-                galleryIntent,
+                videoIntent,
                 REQUEST_VIDEO_CAPTURE_CODE
             )
         })
-        viewModel.isLoading.observe(this, Observer {
-            loading_indicator.visibility = if (it) {
-                if (request_video.visibility == View.VISIBLE) request_video.visibility = View.GONE
-                View.VISIBLE
-            } else View.GONE
-        })
-        viewModel.styleList.observe(this, Observer { styles ->
-            styleListAdapter.submitList(styles)
-        })
-        viewModel.blendModeList.observe(this, Observer {
-            blendModeAdapter.submitList(it)
-        })
-        viewModel.isVideoLoaded.observe(this, Observer {
-            style_stub.visibility = if (it) {
-                style_list.alpha = 1.0f
-                View.GONE
-            } else {
-                style_list.alpha = 0.6f
-                View.VISIBLE
-            }
-        })
-        viewModel.isStyleSelected.observe(this, Observer {
-            blend_mode_stub.visibility = if (it) {
-                blend_mode_list.alpha = 1.0f
-                View.GONE
-            } else {
-                blend_mode_list.alpha = 0.6f
-                View.VISIBLE
-            }
+        viewModel.addNewStyleEvent.observe(this, Observer {
+            val pictureIntent = Intent(
+                Intent.ACTION_PICK,
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            )
+            startActivityForResult(
+                pictureIntent,
+                REQUEST_PICTURE_CAPTURE_CODE
+            )
         })
     }
 
@@ -85,12 +56,18 @@ class ArtisticStyleTransferActivity : AppCompatActivity() {
             }
             return
         }
+        if (requestCode == REQUEST_PICTURE_CAPTURE_CODE && resultCode == RESULT_OK) {
+            data?.data?.let {
+                viewModel.addStyle(Style.PhotoUriStyle(it, it.toString().substringAfterLast("/")))
+            }
+        }
         super.onActivityResult(requestCode, resultCode, data)
     }
 
     companion object {
 
         private const val REQUEST_VIDEO_CAPTURE_CODE = 11
+        private const val REQUEST_PICTURE_CAPTURE_CODE = 12
 
         fun getStartIntent(context: Context): Intent =
             Intent(context, ArtisticStyleTransferActivity::class.java)

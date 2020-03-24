@@ -66,7 +66,15 @@ object Dependencies {
 
     fun getTensorFlowLiteGroup() = arrayOf(TENSORFLOW_LITE, TENSORFLOW_LITE_GPU)
 
+    // Compose
+    const val COMPOSE_RUNTIME = "androidx.compose:compose-runtime:${Versions.COMPOSE_VERSION}"
+    const val UI_FRAMEWORK = "androidx.ui:ui-framework:${Versions.COMPOSE_VERSION}"
+    const val UI_FOUNDATION = "androidx.ui:ui-foundation:${Versions.COMPOSE_VERSION}"
+    const val UI_TOOLING = "androidx.ui:ui-tooling:${Versions.COMPOSE_VERSION}"
+    const val UI_LAYOUT = "androidx.ui:ui-layout:${Versions.COMPOSE_VERSION}"
+    const val UI_MATERIAL = "androidx.ui:ui-material:${Versions.COMPOSE_VERSION}"
 
+    fun getComposeGroup() = arrayOf(COMPOSE_RUNTIME,UI_FRAMEWORK, UI_FOUNDATION, UI_TOOLING, UI_LAYOUT, UI_MATERIAL)
 
     object Versions {
         const val KOIN = "2.0.1"
@@ -85,6 +93,8 @@ object Dependencies {
         const val COROUTINES = "1.3.1"
 
         const val TENSORFLOW_LITE = "1.14.0"
+
+        const val COMPOSE_VERSION = "0.1.0-dev06"
     }
 }
 

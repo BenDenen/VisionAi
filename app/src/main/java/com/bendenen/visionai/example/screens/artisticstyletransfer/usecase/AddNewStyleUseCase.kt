@@ -10,6 +10,6 @@ interface AddNewStyleUseCase {
     class Impl(
         private val styleRepository: StyleRepository
     ) : AddNewStyleUseCase {
-        override suspend fun addNewStyle(style: Style) = styleRepository.addStyle(style, 1)
+        override suspend fun addNewStyle(style: Style) = styleRepository.addStyle(style, 0)
     }
 }

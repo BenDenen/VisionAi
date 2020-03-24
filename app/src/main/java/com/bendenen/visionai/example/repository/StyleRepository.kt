@@ -15,9 +15,7 @@ interface StyleRepository {
 
         private val styleList = Gallery.values().map {
             it.style
-        }.toMutableList().also {
-            it.add(0, Style.AssetStyle("", ""))
-        }
+        }.toMutableList()
 
         override suspend fun getStyleList(): List<Style> = styleList
 
@@ -27,7 +25,7 @@ interface StyleRepository {
 
         override suspend fun addStyle(style: Style, position: Int) {
             if (position == 0) {
-                styleList.add(1, style)
+                styleList.add(0, style)
             } else {
                 styleList.add(position, style)
             }
