@@ -82,8 +82,8 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
     suspend fun <C : StepConfig, R : StepResult<out Any>> initSteps(
         videoProcessorSteps: List<VideoProcessorStep<C, R>>
     ) {
-        assert(::videoProcessor.isInitialized)
-        assert(::videoSource.isInitialized)
+        check(::videoProcessor.isInitialized)
+        check(::videoSource.isInitialized)
 
         var width = videoSource.getSourceWidth()
         var height = videoSource.getSourceHeight()
@@ -102,9 +102,9 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
     }
 
     suspend fun updateConfigForStep(stepIndex: Int, config: StepConfig) {
-        assert(::videoProcessor.isInitialized)
-        assert(::videoSource.isInitialized)
-        assert(stepIndex >= 0)
+        check(::videoProcessor.isInitialized)
+        check(::videoSource.isInitialized)
+        check(stepIndex >= 0)
 
         videoProcessor.getStepAtPosition(stepIndex).updateConfig(config)
     }
@@ -113,8 +113,8 @@ object VisionAi : VideoProcessorListener, CoroutineScope {
     suspend fun requestPreview(
         timestamp: Long
     ): StepResult<out Any> {
-        assert(::videoSource.isInitialized)
-        assert(::videoProcessor.isInitialized)
+        check(::videoSource.isInitialized)
+        check(::videoProcessor.isInitialized)
         require(videoSource is MediaFileVideoSource)
         val bitmap = (videoSource as MediaFileVideoSource).requestPreview(timestamp)
         return videoProcessor.applyForData(bitmap)

@@ -28,12 +28,12 @@ class ArtisticStyleTransferVideoProcessorStep(
     private lateinit var cropToFrameTransform: Matrix
 
     override fun getWidthForNextStep(): Int {
-        assert(::finalImage.isInitialized)
+        check(::finalImage.isInitialized)
         return finalImage.width
     }
 
     override fun getHeightForNextStep(): Int {
-        assert(::finalImage.isInitialized)
+        check(::finalImage.isInitialized)
         return finalImage.height
     }
 
@@ -124,7 +124,7 @@ class ArtisticStyleTransferVideoProcessorStep(
         }
     }
 
-    override suspend fun applyForData(bitmap: Bitmap): ArtisticStyleTransferStepResult {
+    override fun applyForData(bitmap: Bitmap): ArtisticStyleTransferStepResult {
         val croppedCanvas = Canvas(croppedImage)
         croppedCanvas.drawBitmap(bitmap, frameToCropTransform, null)
 

@@ -28,9 +28,6 @@ class ArtisticStyleTransferMlExecutorImpl(
     private lateinit var styleBitmap: Bitmap
     private var updateBottleNeck = true
 
-    private val contentImageFloatArrayBuffer by lazy {
-        FloatArray(1 * CONTENT_IMAGE_SIZE * CONTENT_IMAGE_SIZE * CHANNELS_NUM)
-    }
     private val contentImageDataBuffer by lazy {
         ByteBuffer.allocateDirect(
             1 * CONTENT_IMAGE_SIZE * CONTENT_IMAGE_SIZE * CHANNELS_NUM * 4

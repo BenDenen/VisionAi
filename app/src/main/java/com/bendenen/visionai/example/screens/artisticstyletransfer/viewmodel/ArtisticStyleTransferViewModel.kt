@@ -2,13 +2,15 @@ package com.bendenen.visionai.example.screens.artisticstyletransfer.viewmodel
 
 import android.graphics.Bitmap
 import android.net.Uri
-import androidx.lifecycle.MutableLiveData
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bendenen.visionai.VisionAi
 import com.bendenen.visionai.example.screens.artisticstyletransfer.adapters.BlendModeAdapterCallback
-import com.bendenen.visionai.example.screens.artisticstyletransfer.adapters.BlendModeItem
-import com.bendenen.visionai.example.screens.artisticstyletransfer.adapters.StyleAdapterCallback
+import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.ArtisticStyleTransferLayoutHandler
+import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.ArtisticStyleTransferLayoutState
+import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.content.ContentBlockHandler
+import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.styles.StylesBlockHandler
 import com.bendenen.visionai.example.screens.artisticstyletransfer.usecase.AddNewStyleUseCase
 import com.bendenen.visionai.example.screens.artisticstyletransfer.usecase.ArtisticStyleTransferFunctionsUseCase
 import com.bendenen.visionai.example.screens.artisticstyletransfer.usecase.GetBlendModeListUseCase
@@ -23,89 +25,78 @@ class ArtisticStyleTransferViewModel(
     private val getStyleListUseCase: GetStyleListUseCase,
     private val styleTransferFunctionsUseCase: ArtisticStyleTransferFunctionsUseCase,
     private val getBlendModeListUseCase: GetBlendModeListUseCase
-) : ViewModel(),
-    StyleAdapterCallback, BlendModeAdapterCallback, VisionAi.ResultListener {
+) : ViewModel(), BlendModeAdapterCallback, VisionAi.ResultListener {
 
-    val isLoading = MutableLiveData<Boolean>()
-    val isVideoLoaded = MutableLiveData<Boolean>()
-    val isStyleSelected = MutableLiveData<Boolean>()
+    val state: ArtisticStyleTransferLayoutState = ArtisticStyleTransferLayoutState()
+    val handler = ArtisticStyleTransferLayoutHandler(
+        stylesBlockHandler = StylesBlockHandler(
+            { style -> onStyleClick(style) },
+            { onAddStyleClick() }
+        ),
+        contentBlockHandler = ContentBlockHandler { requestVideo() },
+        processVideoAction = { startVideoProcessing() }
+    )
+
     val requestVideoEvent = MutableLiveUnitEvent()
-
-    val previewImage = MutableLiveData<Bitmap>()
-
     val addNewStyleEvent = MutableLiveUnitEvent()
-
-    val styleList = MutableLiveData<List<Style>>()
-    val blendModeList = MutableLiveData<List<BlendModeItem>>()
-
-    init {
-        viewModelScope.launch {
-            styleList.postValue(getStyleListUseCase.getStyleList())
-            blendModeList.postValue(getBlendModeListUseCase.getBlendModeList().map {
-                BlendModeItem(
-                    it,
-                    it.name
-                )
-            })
-        }
-    }
 
     fun initWithVideoPath(videoUri: Uri) {
         viewModelScope.launch {
-            isLoading.postValue(true)
-            isVideoLoaded.postValue(false)
+            state.updateToVideoLoadingState()
             styleTransferFunctionsUseCase.initVisionAi(
                 videoUri,
                 "temp.mp4"
             )
-            previewImage.postValue(styleTransferFunctionsUseCase.getPreview())
-
-            isLoading.postValue(false)
-            isVideoLoaded.postValue(true)
+            state.updateToVideoLoadedState(styleTransferFunctionsUseCase.getPreview(), getStyleListUseCase.getStyleList())
         }
     }
 
-    fun requestVideo() {
+    private fun requestVideo() {
         requestVideoEvent.sendEvent()
     }
 
-    override fun onStyleClick(style: Style) {
+    private fun onStyleClick(style: Style) {
         viewModelScope.launch {
-            isStyleSelected.postValue(false)
-            isLoading.postValue(true)
+            state.updateToStyleProcessingState()
             styleTransferFunctionsUseCase.initStyle(style)
-            previewImage.postValue(styleTransferFunctionsUseCase.getPreview())
-            isLoading.postValue(false)
-            isStyleSelected.postValue(true)
+            state.updateToStyleProcessedState(styleTransferFunctionsUseCase.getPreview(), style)
         }
     }
 
     override fun onBlendModeClick(blendMode: StyleTransferBlendMode) {
         viewModelScope.launch {
-            isLoading.postValue(true)
-            styleTransferFunctionsUseCase.setBlendMode(blendMode)
-            previewImage.postValue(styleTransferFunctionsUseCase.getPreview())
-            isLoading.postValue(false)
+            // TODO: Update blend Modes
         }
     }
 
-    override fun onAddStyleClick() {
+    private fun onAddStyleClick() {
         addNewStyleEvent.sendEvent()
     }
 
+    private fun startVideoProcessing() {
+        styleTransferFunctionsUseCase.startVideoProcessing(this)
+    }
+
     override fun onStepsResult(bitmap: Bitmap) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+//        state.layoutState = LayoutState.VideoProcessing(bitmap)
     }
 
     override fun onFileResult(filePath: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        Log.e("MyTag", filePath)
+//        state.layoutState.isLoading = false
+        // TODO: Show play and share button
     }
 
     fun addStyle(style: Style) {
         viewModelScope.launch {
+            state.updateToStyleProcessingState()
             addNewStyleUseCase.addNewStyle(style)
-            val newList = getStyleListUseCase.getStyleList()
-            styleList.postValue(newList)
+            state.updateToVideoLoadedState(styleTransferFunctionsUseCase.getPreview(), getStyleListUseCase.getStyleList())
         }
+    }
+
+    override fun onCleared() {
+        styleTransferFunctionsUseCase.stopVideoProcessing()
+        super.onCleared()
     }
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Environment
+import com.bendenen.visionai.VisionAi
 import com.bendenen.visionai.example.utils.VisionAiManager
 import com.bendenen.visionai.tflite.styletransfer.step.ArtisticStyleTransferVideoProcessorStep
 import com.bendenen.visionai.tflite.styletransfer.step.SourcesOrder
@@ -28,6 +29,10 @@ interface ArtisticStyleTransferFunctionsUseCase {
     suspend fun setSourceOrder(sourceOrder: SourcesOrder)
 
     suspend fun setTransparency(alpha: Int)
+
+    fun startVideoProcessing(listener: VisionAi.ResultListener)
+
+    fun stopVideoProcessing()
 
     class Impl(
         private val context: Context,
@@ -83,6 +88,14 @@ interface ArtisticStyleTransferFunctionsUseCase {
             visionAiManager.updateConfig(
                 0, styleTransferConfig
             )
+        }
+
+        override fun startVideoProcessing(listener: VisionAi.ResultListener) {
+            visionAiManager.start(listener)
+        }
+
+        override fun stopVideoProcessing() {
+            visionAiManager.stop()
         }
     }
 }

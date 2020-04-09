@@ -5,7 +5,6 @@ import com.bendenen.visionai.videosource.VideoSourceListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
@@ -60,15 +59,13 @@ class VideoProcessor : VideoSourceListener, CoroutineScope {
     }
 
     override fun onNewBitmap(bitmap: Bitmap) {
-        launch {
-            var result = steps[0].applyForData(bitmap)
-            videoProcessorListener?.onStepResult(0, bitmap, result)
+        var result = steps[0].applyForData(bitmap)
+        videoProcessorListener?.onStepResult(0, bitmap, result)
 
-            for (index in 1 until steps.size) {
-                result = steps[index].applyForData(result.getBitmapForNextStep())
-            }
-            videoProcessorListener?.onNewFrameProcessed(result)
+        for (index in 1 until steps.size) {
+            result = steps[index].applyForData(result.getBitmapForNextStep())
         }
+        videoProcessorListener?.onNewFrameProcessed(result)
     }
 
     override fun onFinish() {

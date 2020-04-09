@@ -30,7 +30,7 @@ abstract class VideoProcessorStep<C, R>(
         updateWithConfig(stepConfig)
     }
 
-    abstract suspend fun applyForData(
+    abstract fun applyForData(
         bitmap: Bitmap
     ): R
 }

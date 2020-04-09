@@ -29,15 +29,31 @@ android {
         versionName = config.versionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
+
+    buildFeatures {
+        // Enables Jetpack Compose for this module
+        compose = true
+    }
+
+    compileOptions {
+        setSourceCompatibility(JavaVersion.VERSION_1_8)
+        setTargetCompatibility(JavaVersion.VERSION_1_8)
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
     aaptOptions {
         noCompress("tflite")
+    }
+    composeOptions{
+        kotlinCompilerExtensionVersion = Dependencies.Versions.COMPOSE_VERSION
     }
 }
 
@@ -53,6 +69,7 @@ dependencies {
         X_CONSTRAINT_LAYOUT,
         X_COORDINATOR_LAYOUT,
         MATERIAL,
+        *Dependencies.getComposeGroup(),
         project(":visionai-core"),
         project(":tflite:styletransfer"),
         project(":tflite:bodysegmentation")
