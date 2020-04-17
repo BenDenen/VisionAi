@@ -1,28 +1,31 @@
-package com.bendenen.visionai.example.screens.artisticstyletransfer.ui.content
+package com.bendenen.visionai.example.ui.content
 
 import android.graphics.Bitmap
 import androidx.compose.Composable
 import androidx.compose.Model
 import androidx.ui.core.Alignment
-import androidx.ui.core.Text
+import androidx.ui.core.Modifier
+import androidx.ui.foundation.Box
 import androidx.ui.foundation.Clickable
-import androidx.ui.foundation.SimpleImage
+import androidx.ui.foundation.Image
+import androidx.ui.foundation.Text
 import androidx.ui.graphics.Color
 import androidx.ui.layout.Column
 import androidx.ui.layout.Container
-import androidx.ui.layout.LayoutHeight
 import androidx.ui.layout.LayoutPadding
 import androidx.ui.layout.LayoutSize
-import androidx.ui.layout.LayoutWidth
+import androidx.ui.layout.fillMaxWidth
+import androidx.ui.layout.padding
+import androidx.ui.layout.preferredHeight
 import androidx.ui.material.CircularProgressIndicator
+import androidx.ui.material.Surface
 import androidx.ui.material.Typography
-import androidx.ui.material.ripple.Ripple
-import androidx.ui.material.surface.Surface
+import androidx.ui.material.ripple.ripple
 import androidx.ui.res.stringResource
 import androidx.ui.tooling.preview.Preview
 import androidx.ui.unit.dp
 import com.bendenen.visionai.example.R
-import com.bendenen.visionai.example.ui.BitmapImage
+import com.bendenen.visionai.example.ui.BitmapImageAsset
 import com.bendenen.visionai.example.ui.themeTypography
 
 @Model
@@ -47,7 +50,8 @@ fun ContentBlockDefaultPreview() {
 @Composable
 fun ContentBlock(
     state: ContentBlockState = ContentBlockState.NotInitialized,
-    contentBlockHandler: ContentBlockHandler = ContentBlockHandler({}),
+    contentBlockHandler: ContentBlockHandler = ContentBlockHandler(
+        {}),
     typography: Typography = themeTypography
 ) {
     Column {
@@ -57,25 +61,26 @@ fun ContentBlock(
             modifier = LayoutPadding(start = 8.dp, top = 8.dp)
         )
 
-        Container(modifier = LayoutHeight(250.dp) + LayoutWidth.Fill + LayoutPadding(16.dp)) {
+        Box(modifier = Modifier.preferredHeight(250.dp) + Modifier.fillMaxWidth() + Modifier.padding(16.dp)) {
 
             when (state) {
                 is ContentBlockState.NotInitialized -> {
-                    Ripple(bounded = true) {
-                        Clickable(onClick = {
+                    Clickable(
+                        modifier = Modifier.ripple(),
+                        onClick = {
                             contentBlockHandler.requestVideoAction()
-                        }) {
-                            Surface(modifier = LayoutSize.Fill, color = Color.LightGray) {
-                                Container(alignment = Alignment.Center) {
-                                    Text(text = stringResource(R.string.request_video), style = typography.button)
-                                }
+                        }
+                    ) {
+                        Surface(modifier = LayoutSize.Fill, color = Color.LightGray) {
+                            Container(alignment = Alignment.Center) {
+                                Text(text = stringResource(R.string.request_video), style = typography.button)
                             }
                         }
                     }
                 }
                 is ContentBlockState.VideoLoaded -> {
                     state.contentImage?.let {
-                        SimpleImage(image = BitmapImage(it))
+                        Image(asset = BitmapImageAsset(it))
                     }
                 }
                 is ContentBlockState.VideoLoading -> {

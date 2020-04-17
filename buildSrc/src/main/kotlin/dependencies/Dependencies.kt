@@ -94,7 +94,7 @@ object Dependencies {
 
         const val TENSORFLOW_LITE = "1.14.0"
 
-        const val COMPOSE_VERSION = "0.1.0-dev06"
+        const val COMPOSE_VERSION = "0.1.0-dev08"
     }
 }
 

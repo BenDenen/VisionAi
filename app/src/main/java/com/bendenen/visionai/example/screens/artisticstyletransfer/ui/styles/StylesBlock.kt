@@ -4,39 +4,39 @@ import androidx.compose.Composable
 import androidx.compose.Model
 import androidx.compose.frames.ModelList
 import androidx.ui.core.Alignment
-import androidx.ui.core.Clip
 import androidx.ui.core.ContextAmbient
-import androidx.ui.core.Text
-import androidx.ui.core.toModifier
+import androidx.ui.core.Modifier
+import androidx.ui.core.clip
 import androidx.ui.foundation.Border
 import androidx.ui.foundation.Box
 import androidx.ui.foundation.Clickable
 import androidx.ui.foundation.HorizontalScroller
+import androidx.ui.foundation.Icon
+import androidx.ui.foundation.Image
+import androidx.ui.foundation.Text
 import androidx.ui.foundation.shape.corner.RoundedCornerShape
 import androidx.ui.graphics.Color
 import androidx.ui.graphics.ScaleFit
-import androidx.ui.graphics.painter.ImagePainter
-import androidx.ui.graphics.vector.DrawVector
 import androidx.ui.layout.Arrangement
 import androidx.ui.layout.Column
-import androidx.ui.layout.Container
 import androidx.ui.layout.LayoutHeight
 import androidx.ui.layout.LayoutPadding
 import androidx.ui.layout.LayoutSize
 import androidx.ui.layout.LayoutWidth
 import androidx.ui.layout.Row
+import androidx.ui.layout.preferredSize
+import androidx.ui.material.Card
 import androidx.ui.material.MaterialTheme
+import androidx.ui.material.Surface
 import androidx.ui.material.Typography
-import androidx.ui.material.ripple.Ripple
-import androidx.ui.material.surface.Card
-import androidx.ui.material.surface.Surface
+import androidx.ui.material.ripple.ripple
 import androidx.ui.res.stringResource
 import androidx.ui.res.vectorResource
 import androidx.ui.text.style.TextOverflow
 import androidx.ui.tooling.preview.Preview
 import androidx.ui.unit.dp
 import com.bendenen.visionai.example.R
-import com.bendenen.visionai.example.ui.BitmapImage
+import com.bendenen.visionai.example.ui.BitmapImageAsset
 import com.bendenen.visionai.example.ui.themeTypography
 import com.bendenen.visionai.tflite.styletransfer.step.Style
 
@@ -127,7 +127,7 @@ fun StylesBlock(
                     border = Border(2.dp, Color.LightGray),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Container(alignment = Alignment.Center) {
+                    Box(gravity = Alignment.Center) {
                         Text(text = stringResource(R.string.video_is_not_selected), style = typography.button)
                     }
                 }
@@ -173,7 +173,7 @@ fun StyleCardBlock(
     }
 }
 
-private val imageSize = LayoutSize(100.dp, 100.dp)
+private val imageSize = Modifier.preferredSize(100.dp, 100.dp)
 
 @Composable
 fun cardText(text: String, typography: Typography) {
@@ -191,27 +191,29 @@ fun StyleCard(
     styleItem: Style,
     styleImageLoader: StyleImageLoader,
     typography: Typography,
-    color: Color = (MaterialTheme.colors()).surface,
+    color: Color = MaterialTheme.colors.surface,
     border: Border? = null,
     styleClickAction: (Style) -> Unit
 ) {
     Card(shape = RoundedCornerShape(8.dp), color = color, border = border, modifier = LayoutPadding(start = 16.dp)) {
-        Ripple(bounded = true) {
-            Clickable(onClick = {
+        Clickable(
+            modifier = Modifier.ripple(true),
+            onClick = {
                 styleClickAction(styleItem)
-            }) {
-                Column(
-                    arrangement = Arrangement.Center
-                ) {
-                    styleImageLoader.loadStyleImage(styleItem)?.let { bitmap ->
-                        val imageModifier = ImagePainter(BitmapImage(bitmap))
-                            .toModifier(scaleFit = ScaleFit.FillMaxDimension)
-                        Clip(shape = RoundedCornerShape(8.dp)) {
-                            Box(modifier = imageSize + imageModifier)
-                        }
-                    } ?: Box(modifier = imageSize)
-                    cardText(styleItem.name, typography)
-                }
+            }
+        ) {
+            Column(
+                arrangement = Arrangement.Center
+            ) {
+                styleImageLoader.loadStyleImage(styleItem)?.let { bitmap ->
+                    val imageModifier = Modifier.clip(shape = RoundedCornerShape(8.dp))
+                    Image(
+                        modifier = imageModifier + imageSize,
+                        scaleFit = ScaleFit.FillMaxDimension,
+                        asset = BitmapImageAsset(bitmap)
+                    )
+                } ?: Box(modifier = imageSize)
+                cardText(styleItem.name, typography)
             }
         }
     }
@@ -220,22 +222,20 @@ fun StyleCard(
 @Composable
 fun AddNewStyleCard(typography: Typography, addStyleAction: () -> Unit) {
     Card(shape = RoundedCornerShape(8.dp)) {
-        Ripple(bounded = true) {
-            Clickable(onClick = {
+        Clickable(
+            modifier = Modifier.ripple(true),
+            onClick = {
                 addStyleAction()
             }) {
-                Column(
-                    arrangement = Arrangement.Center
-                ) {
-                    Container(modifier = imageSize) {
-                        Clip(shape = RoundedCornerShape(topLeft = 8.dp, topRight = 8.dp)) {
-                            Surface(modifier = LayoutSize.Fill, color = Color.LightGray, elevation = 2.dp) {
-                                DrawVector(vectorResource(R.drawable.ic_add_circle_black_24dp))
-                            }
-                        }
+            Column(
+                arrangement = Arrangement.Center
+            ) {
+                Box(modifier = imageSize, shape = RoundedCornerShape(topLeft = 8.dp, topRight = 8.dp)) {
+                    Surface(modifier = LayoutSize.Fill, color = Color.LightGray, elevation = 2.dp) {
+                        Icon(vectorResource(R.drawable.ic_add_circle_black_24dp))
                     }
-                    cardText(stringResource(R.string.add_new_style), typography)
                 }
+                cardText(stringResource(R.string.add_new_style), typography)
             }
 
         }

@@ -3,22 +3,25 @@ package com.bendenen.visionai.example.screens.main.ui
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.Composable
-import androidx.ui.core.Clip
-import androidx.ui.core.Text
+import androidx.ui.core.Modifier
+import androidx.ui.core.clip
+import androidx.ui.foundation.Box
 import androidx.ui.foundation.Clickable
-import androidx.ui.foundation.SimpleImage
+import androidx.ui.foundation.Image
+import androidx.ui.foundation.Text
 import androidx.ui.foundation.shape.corner.RoundedCornerShape
 import androidx.ui.layout.Arrangement
 import androidx.ui.layout.Column
-import androidx.ui.layout.Container
 import androidx.ui.layout.LayoutPadding
 import androidx.ui.layout.LayoutSize
 import androidx.ui.layout.LayoutWidth
 import androidx.ui.layout.Row
+import androidx.ui.layout.padding
+import androidx.ui.layout.preferredSize
+import androidx.ui.material.Card
 import androidx.ui.material.MaterialTheme
 import androidx.ui.material.Typography
-import androidx.ui.material.ripple.Ripple
-import androidx.ui.material.surface.Card
+import androidx.ui.material.ripple.ripple
 import androidx.ui.res.imageResource
 import androidx.ui.res.stringResource
 import androidx.ui.tooling.preview.Preview
@@ -63,26 +66,25 @@ fun Tile(
     clickAction: () -> Unit
 ) {
     Card(shape = RoundedCornerShape(8.dp), elevation = 4.dp) {
-        Ripple(bounded = true) {
-            Clickable(onClick = {
+        Clickable(
+            modifier = Modifier.ripple(true),
+            onClick = {
                 clickAction()
             }) {
-                Column(
-                    modifier = LayoutPadding(16.dp),
-                    arrangement = Arrangement.Center
-                ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                arrangement = Arrangement.Center
+            ) {
 
-                    Container(modifier = LayoutSize(200.dp, 200.dp)) {
-                        Clip(shape = RoundedCornerShape(8.dp)) {
-                            SimpleImage(imageResource(imageId))
-                        }
-                    }
-                    Text(
-                        stringResource(titleId),
-                        modifier = LayoutPadding(top = 8.dp),
-                        style = typography.body1
-                    )
+                Box(modifier = Modifier.preferredSize(200.dp, 200.dp)) {
+                    val imageModifier = Modifier.clip(shape = RoundedCornerShape(8.dp))
+                    Image(asset = imageResource(imageId), modifier = imageModifier)
                 }
+                Text(
+                    stringResource(titleId),
+                    modifier = LayoutPadding(top = 8.dp),
+                    style = typography.body1
+                )
             }
 
         }

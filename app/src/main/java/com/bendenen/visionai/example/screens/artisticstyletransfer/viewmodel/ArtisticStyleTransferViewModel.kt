@@ -9,7 +9,7 @@ import com.bendenen.visionai.VisionAi
 import com.bendenen.visionai.example.screens.artisticstyletransfer.adapters.BlendModeAdapterCallback
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.ArtisticStyleTransferLayoutHandler
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.ArtisticStyleTransferLayoutState
-import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.content.ContentBlockHandler
+import com.bendenen.visionai.example.ui.content.ContentBlockHandler
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.styles.StylesBlockHandler
 import com.bendenen.visionai.example.screens.artisticstyletransfer.usecase.AddNewStyleUseCase
 import com.bendenen.visionai.example.screens.artisticstyletransfer.usecase.ArtisticStyleTransferFunctionsUseCase

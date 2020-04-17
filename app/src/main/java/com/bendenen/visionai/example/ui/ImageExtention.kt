@@ -3,32 +3,24 @@ package com.bendenen.visionai.example.ui
 import android.graphics.Bitmap
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.ui.graphics.Image
-import androidx.ui.graphics.ImageConfig
+import androidx.ui.graphics.ImageAsset
+import androidx.ui.graphics.ImageAssetConfig
+import androidx.ui.graphics.NativeImageAsset
 import androidx.ui.graphics.colorspace.ColorSpace
 import androidx.ui.graphics.colorspace.ColorSpaces
 
 // TODO Check do we have something from the box?
-data class BitmapImage(val bitmap: Bitmap) : Image {
+class BitmapImageAsset(val bitmap: Bitmap) : ImageAsset {
 
-    /**
-     * @see Image.width
-     */
     override val width: Int
         get() = bitmap.width
 
-    /**
-     * @see Image.height
-     */
     override val height: Int
         get() = bitmap.height
 
-    override val config: ImageConfig
+    override val config: ImageAssetConfig
         get() = bitmap.config.toImageConfig()
 
-    /**
-     * @see Image.colorSpace
-     */
     override val colorSpace: ColorSpace
         get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             bitmap.colorSpace?.toComposeColorSpace() ?: ColorSpaces.Srgb
@@ -36,64 +28,55 @@ data class BitmapImage(val bitmap: Bitmap) : Image {
             ColorSpaces.Srgb
         }
 
-    /**
-     * @see Image.hasAlpha
-     */
     override val hasAlpha: Boolean
         get() = bitmap.hasAlpha()
 
-    /**
-     * @see Image.nativeImage
-     */
-    override val nativeImage: Bitmap
+    override val nativeImage: NativeImageAsset
         get() = bitmap
 
-    /**
-     * @see
-     */
     override fun prepareToDraw() {
         bitmap.prepareToDraw()
     }
 }
 
-internal fun ImageConfig.toBitmapConfig(): Bitmap.Config {
+internal fun ImageAssetConfig.toBitmapConfig(): Bitmap.Config {
     // Cannot utilize when statements with enums that may have different sets of supported
     // values between the compiled SDK and the platform version of the device.
     // As a workaround use if/else statements
     // See https://youtrack.jetbrains.com/issue/KT-30473 for details
-    return if (this == ImageConfig.Argb8888) {
+    return if (this == ImageAssetConfig.Argb8888) {
         Bitmap.Config.ARGB_8888
-    } else if (this == ImageConfig.Alpha8) {
+    } else if (this == ImageAssetConfig.Alpha8) {
         Bitmap.Config.ALPHA_8
-    } else if (this == ImageConfig.Rgb565) {
+    } else if (this == ImageAssetConfig.Rgb565) {
         Bitmap.Config.RGB_565
-    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && this == ImageConfig.F16) {
+    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && this == ImageAssetConfig.F16) {
         Bitmap.Config.RGBA_F16
-    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && this == ImageConfig.Gpu) {
+    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && this == ImageAssetConfig.Gpu) {
         Bitmap.Config.HARDWARE
     } else {
         Bitmap.Config.ARGB_8888
     }
 }
 
-internal fun Bitmap.Config.toImageConfig(): ImageConfig {
+internal fun Bitmap.Config.toImageConfig(): ImageAssetConfig {
     // Cannot utilize when statements with enums that may have different sets of supported
     // values between the compiled SDK and the platform version of the device.
     // As a workaround use if/else statements
     // See https://youtrack.jetbrains.com/issue/KT-30473 for details
     @Suppress("DEPRECATION")
     return if (this == Bitmap.Config.ALPHA_8) {
-        ImageConfig.Alpha8
+        ImageAssetConfig.Alpha8
     } else if (this == Bitmap.Config.RGB_565) {
-        ImageConfig.Rgb565
+        ImageAssetConfig.Rgb565
     } else if (this == Bitmap.Config.ARGB_4444) {
-        ImageConfig.Argb8888 // Always upgrade to Argb_8888
+        ImageAssetConfig.Argb8888 // Always upgrade to Argb_8888
     } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && this == Bitmap.Config.RGBA_F16) {
-        ImageConfig.F16
+        ImageAssetConfig.F16
     } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && this == Bitmap.Config.HARDWARE) {
-        ImageConfig.Gpu
+        ImageAssetConfig.Gpu
     } else {
-        ImageConfig.Argb8888
+        ImageAssetConfig.Argb8888
     }
 }
 
