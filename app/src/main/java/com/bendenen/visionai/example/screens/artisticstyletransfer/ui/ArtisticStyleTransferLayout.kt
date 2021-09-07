@@ -1,24 +1,15 @@
 package com.bendenen.visionai.example.screens.artisticstyletransfer.ui
 
 import android.graphics.Bitmap
-import androidx.compose.Composable
-import androidx.compose.Model
-import androidx.ui.core.Alignment
-import androidx.ui.core.ContextAmbient
-import androidx.ui.foundation.DrawBackground
-import androidx.ui.graphics.Color
-import androidx.ui.graphics.vector.DrawVector
-import androidx.ui.layout.Column
-import androidx.ui.layout.Container
-import androidx.ui.layout.LayoutPadding
-import androidx.ui.layout.LayoutSize
-import androidx.ui.material.CircularProgressIndicator
-import androidx.ui.material.FloatingActionButton
-import androidx.ui.material.MaterialTheme
-import androidx.ui.material.Typography
-import androidx.ui.res.vectorResource
-import androidx.ui.tooling.preview.Preview
-import androidx.ui.unit.dp
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import com.bendenen.visionai.example.R
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.content.ContentBlock
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.content.ContentBlockHandler
@@ -27,10 +18,8 @@ import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.styles.Sty
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.styles.StylesBlock
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.styles.StylesBlockHandler
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.styles.StylesBlockState
-import com.bendenen.visionai.example.ui.themeTypography
 import com.bendenen.visionai.tflite.styletransfer.step.Style
 
-@Model
 class ArtisticStyleTransferLayoutState {
     val stylesBlockState: StylesBlockState = StylesBlockState()
     var contentBlockState: ContentBlockState = ContentBlockState.NotInitialized
@@ -87,7 +76,7 @@ fun DefaultPreview() {
     ArtisticStyleTransferLayout(
         ArtisticStyleTransferLayoutState(),
         ArtisticStyleTransferLayoutHandler(),
-        StyleImageLoader.Impl(context = ContextAmbient.current)
+        StyleImageLoader.Impl(context = LocalContext.current)
     )
 }
 
@@ -97,7 +86,7 @@ fun LoadingPreview() {
     ArtisticStyleTransferLayout(
         ArtisticStyleTransferLayoutState().also { it.layoutState = ArtisticStyleTransferLayoutState.LayoutState.VIDEO_LOADING },
         ArtisticStyleTransferLayoutHandler(),
-        StyleImageLoader.Impl(context = ContextAmbient.current)
+        StyleImageLoader.Impl(context = LocalContext.current)
     )
 }
 
@@ -106,7 +95,6 @@ fun ArtisticStyleTransferLayout(
     state: ArtisticStyleTransferLayoutState,
     handler: ArtisticStyleTransferLayoutHandler,
     styleImageLoader: StyleImageLoader,
-    typography: Typography = themeTypography
 ) {
     MaterialTheme() {
         Column {
@@ -114,29 +102,24 @@ fun ArtisticStyleTransferLayout(
                 state.stylesBlockState,
                 handler.stylesBlockHandler,
                 styleImageLoader,
-                typography
             )
             ContentBlock(
                 state.contentBlockState,
                 handler.contentBlockHandler,
-                typography
             )
             if (state.layoutState != ArtisticStyleTransferLayoutState.LayoutState.NOT_INITIALIZED) {
-                Container(modifier = LayoutSize.Fill, alignment = Alignment.BottomEnd) {
-                    FloatingActionButton(modifier = LayoutPadding(16.dp), onClick = handler.processVideoAction) {
-                        DrawVector(
-                            vectorResource(R.drawable.ic_movie_filter_white_24dp),
-                            tintColor = Color.White
-                        )
-                    }
-                }
+//            Container(modifier = LayoutSize.Fill, alignment = Alignment.BottomEnd) {
+//                    FloatingActionButton(modifier = LayoutPadding(16.dp), onClick = handler.processVideoAction) {
+//                        DrawVector(
+//                            vectorResource(R.drawable.ic_movie_filter_white_24dp),
+//                            tintColor = Color.White
+//                        )
+//                    }
+//                }
             }
         }
         if (state.layoutState.isLoadingStats()) {
-            Container(
-                modifier = LayoutSize.Fill + DrawBackground(color = Color(125, 125, 125, 100)),
-                alignment = Alignment.Center
-            ) {
+            Box(modifier = Modifier.fillMaxSize()) {
                 CircularProgressIndicator()
             }
         }

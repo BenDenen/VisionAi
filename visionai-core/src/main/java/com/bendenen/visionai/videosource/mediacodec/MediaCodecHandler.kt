@@ -47,6 +47,7 @@ class MediaCodecHandler(
     init {
         // Decoder initializing
         val mimeType = trackFormat.getString(MediaFormat.KEY_MIME)
+            ?: throw IllegalArgumentException("MediaFormat can not be null")
 
         if (!mimeType.contains("video/")) {
             throw IllegalArgumentException("MediaFormat should contain video information")

@@ -1,8 +1,4 @@
-import dependencies.apiFor
-import dependencies.implementationFor
-import dependencies.Dependencies
-import dependencies.TestDependencies
-import dependencies.testApiFor
+import dependencies.*
 
 plugins {
     id("com.android.library")
@@ -11,14 +7,12 @@ plugins {
 }
 
 android {
-    val config = ModulesConfigurationManager.getConfigByProjectName(project.name)
+    val config = ModulesConfigurationManager.getConfigByProjectName(project.name,project.rootDir)
 
     compileSdkVersion(AndroidConfig.COMPILE_SDK_VERSION)
     defaultConfig {
-        minSdkVersion(AndroidConfig.MIN_SDK_VERSION)
-        targetSdkVersion(AndroidConfig.TARGET_SDK_VERSION)
-        versionCode = config.versionCode
-        versionName = config.versionName
+        minSdk = AndroidConfig.MIN_SDK_VERSION
+        targetSdk = AndroidConfig.TARGET_SDK_VERSION
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles(
             file("proguard-rules.pro")
@@ -32,7 +26,7 @@ android {
         }
 
         ndk {
-            abiFilters?.add("arm64-v8a")
+            abiFilters.add("arm64-v8a")
         }
     }
 
@@ -40,13 +34,16 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 
     externalNativeBuild {
         cmake {
-            setPath("CMakeLists.txt")
+            path("CMakeLists.txt")
         }
     }
 

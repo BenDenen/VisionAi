@@ -8,14 +8,12 @@ plugins {
 }
 
 android {
-    val config = ModulesConfigurationManager.getConfigByProjectName(project.name)
+    val config = ModulesConfigurationManager.getConfigByProjectName(project.name,project.rootDir)
 
-    compileSdkVersion(AndroidConfig.COMPILE_SDK_VERSION)
+    compileSdk = AndroidConfig.COMPILE_SDK_VERSION
     defaultConfig {
-        minSdkVersion(AndroidConfig.MIN_SDK_VERSION)
-        targetSdkVersion(AndroidConfig.TARGET_SDK_VERSION)
-        versionCode = config.versionCode
-        versionName = config.versionName
+        minSdk = AndroidConfig.MIN_SDK_VERSION
+        targetSdk = AndroidConfig.TARGET_SDK_VERSION
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

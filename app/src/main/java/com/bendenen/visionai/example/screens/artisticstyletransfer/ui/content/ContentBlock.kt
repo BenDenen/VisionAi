@@ -1,31 +1,22 @@
 package com.bendenen.visionai.example.screens.artisticstyletransfer.ui.content
 
 import android.graphics.Bitmap
-import androidx.compose.Composable
-import androidx.compose.Model
-import androidx.ui.core.Alignment
-import androidx.ui.core.Text
-import androidx.ui.foundation.Clickable
-import androidx.ui.foundation.SimpleImage
-import androidx.ui.graphics.Color
-import androidx.ui.layout.Column
-import androidx.ui.layout.Container
-import androidx.ui.layout.LayoutHeight
-import androidx.ui.layout.LayoutPadding
-import androidx.ui.layout.LayoutSize
-import androidx.ui.layout.LayoutWidth
-import androidx.ui.material.CircularProgressIndicator
-import androidx.ui.material.Typography
-import androidx.ui.material.ripple.Ripple
-import androidx.ui.material.surface.Surface
-import androidx.ui.res.stringResource
-import androidx.ui.tooling.preview.Preview
-import androidx.ui.unit.dp
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.bendenen.visionai.example.R
-import com.bendenen.visionai.example.ui.BitmapImage
 import com.bendenen.visionai.example.ui.themeTypography
 
-@Model
 sealed class ContentBlockState(var contentImage: Bitmap? = null) {
     object NotInitialized : ContentBlockState()
     object VideoLoading : ContentBlockState()
@@ -48,40 +39,39 @@ fun ContentBlockDefaultPreview() {
 fun ContentBlock(
     state: ContentBlockState = ContentBlockState.NotInitialized,
     contentBlockHandler: ContentBlockHandler = ContentBlockHandler({}),
-    typography: Typography = themeTypography
 ) {
     Column {
         Text(
             text = stringResource(R.string.video_title),
-            style = typography.subtitle1,
-            modifier = LayoutPadding(start = 8.dp, top = 8.dp)
         )
 
-        Container(modifier = LayoutHeight(250.dp) + LayoutWidth.Fill + LayoutPadding(16.dp)) {
+        Box(modifier = Modifier
+            .height(250.dp)
+            .fillMaxWidth()
+            .padding(16.dp)) {
 
             when (state) {
                 is ContentBlockState.NotInitialized -> {
-                    Ripple(bounded = true) {
-                        Clickable(onClick = {
-                            contentBlockHandler.requestVideoAction()
-                        }) {
-                            Surface(modifier = LayoutSize.Fill, color = Color.LightGray) {
-                                Container(alignment = Alignment.Center) {
-                                    Text(text = stringResource(R.string.request_video), style = typography.button)
-                                }
-                            }
+                    Surface(modifier = Modifier
+                        .fillMaxSize()
+                        .clickable { contentBlockHandler.requestVideoAction.invoke() }, color = Color.LightGray) {
+                        Box() {
+                            Text(text = stringResource(R.string.request_video))
                         }
                     }
                 }
                 is ContentBlockState.VideoLoaded -> {
                     state.contentImage?.let {
-                        SimpleImage(image = BitmapImage(it))
+                        Image(
+                            bitmap = it.asImageBitmap(),
+                            contentDescription = null
+                        )
                     }
                 }
                 is ContentBlockState.VideoLoading -> {
-                    Surface(modifier = LayoutSize.Fill, color = Color.LightGray) {
-                        Container(alignment = Alignment.Center) {
-                            Text(text = stringResource(R.string.video_loading), style = typography.button)
+                    Surface(modifier = Modifier.fillMaxSize(), color = Color.LightGray) {
+                        Box() {
+                            Text(text = stringResource(R.string.video_loading))
                             CircularProgressIndicator()
                         }
                     }

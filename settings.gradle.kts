@@ -1,9 +1,8 @@
 val modulesList = mutableListOf<String>()
-File(java.nio.file.Paths.get("").toAbsolutePath().toString()).walk().forEach {
+rootDir.walk().forEach {
     if(it.isFile){
         val regex = """(.+)/(.+)\.(.+)""".toRegex()
         val matchResult = regex.matchEntire(it.absolutePath)
-
         if(matchResult != null) {
             val (directory, fileName, extension) = matchResult.destructured
             if(fileName == "module" && extension == "properties") {

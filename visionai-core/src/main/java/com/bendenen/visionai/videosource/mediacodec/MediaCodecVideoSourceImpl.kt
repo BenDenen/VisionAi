@@ -16,11 +16,7 @@ import com.bendenen.visionai.videosource.VideoSourceListener
 import com.bendenen.visionai.videosource.render.ImageRender
 import com.bendenen.visionai.videosource.render.RenderActionsListener
 import com.bendenen.visionai.videosource.render.rs.IntrinsicRenderScriptImageRender
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
 class MediaCodecVideoSourceImpl(
@@ -120,6 +116,7 @@ class MediaCodecVideoSourceImpl(
             val trackFormat = extractor.getTrackFormat(i)
 
             val mimeType = trackFormat.getString(MediaFormat.KEY_MIME)
+                ?: throw IllegalArgumentException("MemType can not be null")
 
             if (mimeType.contains("video/")) {
 
@@ -181,7 +178,12 @@ class MediaCodecVideoSourceImpl(
             withContext(Dispatchers.IO) {
                 val mediaMetadataRetriever = MediaMetadataRetriever()
                 mediaMetadataRetriever.setDataSource(application, videoUri)
-                previewBitmap = mediaMetadataRetriever.getFrameAtTime(timestamp)
+                previewBitmap =
+                    mediaMetadataRetriever.getFrameAtTime(timestamp) ?: Bitmap.createBitmap(
+                        0,
+                        0,
+                        Bitmap.Config.ARGB_8888
+                    )
                 lastRequestedTimestamp = timestamp
                 return@withContext previewBitmap
             }
