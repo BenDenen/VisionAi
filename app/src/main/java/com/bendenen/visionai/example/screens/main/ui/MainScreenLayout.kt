@@ -56,7 +56,7 @@ fun Tile(
         ) {
 
             Box(modifier = Modifier
-                .size(200.dp, 200.dp)
+                .fillMaxSize()
                 .clip(RoundedCornerShape(8.dp))) {
                 Image(painter = painterResource(id = imageId), contentDescription = null)
             }

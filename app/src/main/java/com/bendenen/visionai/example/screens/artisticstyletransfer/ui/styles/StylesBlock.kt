@@ -88,6 +88,8 @@ fun StyleBlockPreviewLoading() {
     )
 }
 
+private val imageSize = Modifier.size(100.dp, 100.dp)
+
 @Composable
 fun StylesBlock(
     state: StylesBlockState = StylesBlockState(),
@@ -104,11 +106,11 @@ fun StylesBlock(
         when (state.layoutState) {
             StylesBlockState.LayoutState.DISABLED -> {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxWidth().height(100.dp).padding(16.dp),
                     border = BorderStroke(2.dp, Color.LightGray),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Box(modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                    Box(modifier = Modifier.wrapContentSize().align(Alignment.CenterHorizontally)) {
                         Text(text = stringResource(R.string.video_is_not_selected), style = typography.button)
                     }
                 }
@@ -149,8 +151,6 @@ fun StyleCardBlock(
         )
     }
 }
-
-private val imageSize = Modifier.size(100.dp, 100.dp)
 
 @Composable
 fun cardText(text: String) {

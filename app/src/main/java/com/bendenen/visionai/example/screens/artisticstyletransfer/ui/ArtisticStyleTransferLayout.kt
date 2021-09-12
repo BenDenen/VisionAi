@@ -1,15 +1,21 @@
 package com.bendenen.visionai.example.screens.artisticstyletransfer.ui
 
 import android.graphics.Bitmap
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.bendenen.visionai.example.R
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.content.ContentBlock
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.content.ContentBlockHandler
@@ -108,14 +114,11 @@ fun ArtisticStyleTransferLayout(
                 handler.contentBlockHandler,
             )
             if (state.layoutState != ArtisticStyleTransferLayoutState.LayoutState.NOT_INITIALIZED) {
-//            Container(modifier = LayoutSize.Fill, alignment = Alignment.BottomEnd) {
-//                    FloatingActionButton(modifier = LayoutPadding(16.dp), onClick = handler.processVideoAction) {
-//                        DrawVector(
-//                            vectorResource(R.drawable.ic_movie_filter_white_24dp),
-//                            tintColor = Color.White
-//                        )
-//                    }
-//                }
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomEnd) {
+                    FloatingActionButton(modifier = Modifier.padding(16.dp), onClick = handler.processVideoAction) {
+                        Image(painter = painterResource(id = R.drawable.ic_movie_filter_white_24dp), contentDescription = null)
+                    }
+                }
             }
         }
         if (state.layoutState.isLoadingStats()) {
