@@ -10,6 +10,7 @@ import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme.typography
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,7 +35,11 @@ fun MainScreenLayout(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
     ) {
-        Row(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Tile(R.drawable.starry_night, R.string.request_style_transfer, requestStyleTransferAction)
         }
 
@@ -47,18 +52,26 @@ fun Tile(
     @StringRes titleId: Int,
     clickAction: () -> Unit
 ) {
-    Card(shape = RoundedCornerShape(8.dp), elevation = 4.dp) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        elevation = 4.dp,
+        modifier = Modifier.clickable { clickAction.invoke() }
+    ) {
         Column(
             modifier = Modifier
-                .padding(16.dp)
-                .clickable { clickAction.invoke() },
+                .padding(16.dp),
             horizontalAlignment = BiasAlignment.Horizontal(0f)
         ) {
-
-            Box(modifier = Modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(8.dp))) {
-                Image(painter = painterResource(id = imageId), contentDescription = null)
+            Box(
+                modifier = Modifier
+                    .wrapContentSize()
+                    .clip(RoundedCornerShape(8.dp))
+            ) {
+                Image(
+                    painter = painterResource(id = imageId),
+                    contentDescription = null,
+                    modifier = Modifier.size(200.dp, 200.dp)
+                )
             }
             Text(
                 stringResource(titleId),
