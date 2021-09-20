@@ -2,20 +2,21 @@ package com.bendenen.visionai.example.screens.artisticstyletransfer.ui
 
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.bendenen.visionai.example.R
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.content.ContentBlock
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.content.ContentBlockHandler
@@ -26,36 +27,43 @@ import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.styles.Sty
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.styles.StylesBlockState
 import com.bendenen.visionai.tflite.styletransfer.step.Style
 
-class ArtisticStyleTransferLayoutState {
-    val stylesBlockState: StylesBlockState = StylesBlockState()
-    var contentBlockState: ContentBlockState = ContentBlockState.NotInitialized
+data class ArtisticStyleTransferLayoutState(
+    val stylesBlockState: StylesBlockState = StylesBlockState(),
+    var contentBlockState: ContentBlockState = ContentBlockState.NotInitialized,
     var layoutState: LayoutState = LayoutState.NOT_INITIALIZED
+) {
 
-    fun updateToVideoLoadingState() {
-        stylesBlockState.layoutState = StylesBlockState.LayoutState.DISABLED
-        contentBlockState = ContentBlockState.VideoLoading
+
+    fun toVideoLoadingState() = this.copy(
+        stylesBlockState = stylesBlockState.copy(layoutState = StylesBlockState.LayoutState.DISABLED),
+        contentBlockState = ContentBlockState.VideoLoading,
         layoutState = LayoutState.VIDEO_LOADING
-    }
+    )
 
-    fun updateToVideoLoadedState(contentImage: Bitmap, styleList: List<Style>) {
-        stylesBlockState.styles.clear()
-        stylesBlockState.styles.addAll(styleList)
-        stylesBlockState.layoutState = StylesBlockState.LayoutState.ENABLED
-        contentBlockState = ContentBlockState.VideoLoaded(contentImage)
+    fun toVideoLoadedState(contentImage: Bitmap, styleList: List<Style>) = this.copy(
+        stylesBlockState = stylesBlockState.copy(
+            styles = styleList,
+            layoutState = StylesBlockState.LayoutState.ENABLED
+        ),
+        contentBlockState = ContentBlockState.VideoLoaded(contentImage),
         layoutState = LayoutState.VIDEO_LOADED
-    }
+    )
 
-    fun updateToStyleProcessingState() {
-        stylesBlockState.layoutState = StylesBlockState.LayoutState.STYLE_PROCESSING
-        contentBlockState = ContentBlockState.VideoLoaded(contentBlockState.contentImage)
+    fun toStyleProcessingState() = this.copy(
+        stylesBlockState = stylesBlockState.copy(
+            layoutState = StylesBlockState.LayoutState.STYLE_PROCESSING
+        ),
+        contentBlockState = ContentBlockState.VideoLoaded(contentBlockState.contentImage),
         layoutState = LayoutState.STYLE_PROCESSING
-    }
+    )
 
-    fun updateToStyleProcessedState(contentImage: Bitmap, style: Style) {
-        stylesBlockState.layoutState = StylesBlockState.LayoutState.STYLE_PROCESSED
-        contentBlockState = ContentBlockState.VideoLoaded(contentImage)
+    fun toStyleProcessedState(contentImage: Bitmap, style: Style) = this.copy(
+        stylesBlockState = stylesBlockState.copy(
+            layoutState = StylesBlockState.LayoutState.STYLE_PROCESSED
+        ),
+        contentBlockState = ContentBlockState.VideoLoaded(contentImage),
         layoutState = LayoutState.STYLE_PROCESSED
-    }
+    )
 
     enum class LayoutState {
         NOT_INITIALIZED,
@@ -80,7 +88,7 @@ data class ArtisticStyleTransferLayoutHandler(
 @Composable
 fun DefaultPreview() {
     ArtisticStyleTransferLayout(
-        ArtisticStyleTransferLayoutState(),
+        MutableLiveData(ArtisticStyleTransferLayoutState()),
         ArtisticStyleTransferLayoutHandler(),
         StyleImageLoader.Impl(context = LocalContext.current)
     )
@@ -90,7 +98,7 @@ fun DefaultPreview() {
 @Composable
 fun LoadingPreview() {
     ArtisticStyleTransferLayout(
-        ArtisticStyleTransferLayoutState().also { it.layoutState = ArtisticStyleTransferLayoutState.LayoutState.VIDEO_LOADING },
+        MutableLiveData(ArtisticStyleTransferLayoutState(layoutState = ArtisticStyleTransferLayoutState.LayoutState.VIDEO_LOADING)),
         ArtisticStyleTransferLayoutHandler(),
         StyleImageLoader.Impl(context = LocalContext.current)
     )
@@ -98,10 +106,13 @@ fun LoadingPreview() {
 
 @Composable
 fun ArtisticStyleTransferLayout(
-    state: ArtisticStyleTransferLayoutState,
+    liveDataState: LiveData<ArtisticStyleTransferLayoutState>,
     handler: ArtisticStyleTransferLayoutHandler,
     styleImageLoader: StyleImageLoader,
 ) {
+    val state by liveDataState.observeAsState(
+        liveDataState.value ?: ArtisticStyleTransferLayoutState()
+    )
     MaterialTheme() {
         Column {
             StylesBlock(
@@ -114,16 +125,22 @@ fun ArtisticStyleTransferLayout(
                 handler.contentBlockHandler,
             )
             if (state.layoutState != ArtisticStyleTransferLayoutState.LayoutState.NOT_INITIALIZED) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomEnd) {
-                    FloatingActionButton(modifier = Modifier.padding(16.dp), onClick = handler.processVideoAction) {
-                        Image(painter = painterResource(id = R.drawable.ic_movie_filter_white_24dp), contentDescription = null)
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomEnd) {
+                    FloatingActionButton(
+                        modifier = Modifier.padding(16.dp),
+                        onClick = handler.processVideoAction
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_movie_filter_white_24dp),
+                            contentDescription = null
+                        )
                     }
                 }
             }
         }
         if (state.layoutState.isLoadingStats()) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                CircularProgressIndicator()
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(modifier = Modifier.wrapContentSize())
             }
         }
     }

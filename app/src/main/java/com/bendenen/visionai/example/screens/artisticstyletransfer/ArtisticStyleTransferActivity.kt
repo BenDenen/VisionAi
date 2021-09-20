@@ -23,7 +23,7 @@ class ArtisticStyleTransferActivity : AppCompatActivity() {
         setContent {
             AppTheme {
                 ArtisticStyleTransferLayout(
-                    state = viewModel.state,
+                    liveDataState = viewModel.state,
                     handler = viewModel.handler,
                     styleImageLoader = currentScope.inject<StyleImageLoader>().value
                 )

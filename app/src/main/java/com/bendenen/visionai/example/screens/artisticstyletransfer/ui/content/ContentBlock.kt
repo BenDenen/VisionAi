@@ -17,7 +17,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bendenen.visionai.example.R
-import com.bendenen.visionai.example.ui.themeTypography
 
 sealed class ContentBlockState(var contentImage: Bitmap? = null) {
     object NotInitialized : ContentBlockState()
@@ -42,22 +41,24 @@ fun ContentBlock(
     state: ContentBlockState = ContentBlockState.NotInitialized,
     contentBlockHandler: ContentBlockHandler = ContentBlockHandler({}),
 ) {
-    Column {
+    Column(modifier = Modifier.padding(16.dp)) {
         Text(
             text = stringResource(R.string.video_title),
         )
 
-        Box(modifier = Modifier
-            .height(250.dp)
-            .fillMaxWidth()
-            .padding(16.dp)) {
+        Box(
+            modifier = Modifier
+                .height(250.dp)
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 8.dp)
+        ) {
 
             when (state) {
                 is ContentBlockState.NotInitialized -> {
-                    Surface(modifier = Modifier
-                        .fillMaxSize()
-                        .clickable { contentBlockHandler.requestVideoAction.invoke() },
-                        color = Color.LightGray,
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable { contentBlockHandler.requestVideoAction.invoke() },
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
@@ -67,10 +68,17 @@ fun ContentBlock(
                 }
                 is ContentBlockState.VideoLoaded -> {
                     state.contentImage?.let {
-                        Image(
-                            bitmap = it.asImageBitmap(),
-                            contentDescription = null
-                        )
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Image(
+                                bitmap = it.asImageBitmap(),
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
                 }
                 is ContentBlockState.VideoLoading -> {

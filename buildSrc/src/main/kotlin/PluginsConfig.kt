@@ -4,7 +4,7 @@ import org.gradle.kotlin.dsl.DependencyHandlerScope
 object Plugins {
 
     object Versions {
-        const val GRADLE_ANDROID = "7.1.0-alpha10"
+        const val GRADLE_ANDROID = "7.1.0-alpha12"
         const val KOTLIN = "1.5.21"
     }
 }
