@@ -4,12 +4,13 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.provider.MediaStore
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import androidx.ui.core.setContent
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.ArtisticStyleTransferLayout
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ui.styles.StyleImageLoader
 import com.bendenen.visionai.example.screens.artisticstyletransfer.viewmodel.ArtisticStyleTransferViewModel
+import com.bendenen.visionai.example.ui.AppTheme
 import com.bendenen.visionai.tflite.styletransfer.step.Style
 import org.koin.androidx.scope.currentScope
 
@@ -20,11 +21,13 @@ class ArtisticStyleTransferActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            ArtisticStyleTransferLayout(
-                state = viewModel.state,
-                handler = viewModel.handler,
-                styleImageLoader = currentScope.inject<StyleImageLoader>().value
-            )
+            AppTheme {
+                ArtisticStyleTransferLayout(
+                    liveDataState = viewModel.state,
+                    handler = viewModel.handler,
+                    styleImageLoader = currentScope.inject<StyleImageLoader>().value
+                )
+            }
         }
 
         viewModel.requestVideoEvent.observe(this, Observer {

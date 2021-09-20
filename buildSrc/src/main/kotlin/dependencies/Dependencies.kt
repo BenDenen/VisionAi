@@ -36,14 +36,19 @@ object Dependencies {
 
     const val X_CORE_KTX = "androidx.core:core-ktx:${Versions.X_KTX}"
     const val X_ACTIVITY_KTX = "androidx.activity:activity-ktx:${Versions.X_KTX}"
-    const val X_LIFECYCLE_VIEWMODEL_KTX = "androidx.lifecycle:lifecycle-viewmodel-ktx:${Versions.X_LIFECYCLE_KTX}"
-    const val X_LIFECYCLE_RUNTIME_KTX = "androidx.lifecycle:lifecycle-runtime-ktx:${Versions.X_LIFECYCLE_KTX}"
+    const val X_LIFECYCLE_VIEWMODEL_KTX =
+        "androidx.lifecycle:lifecycle-viewmodel-ktx:${Versions.X_LIFECYCLE_KTX}"
+    const val X_LIFECYCLE_RUNTIME_KTX =
+        "androidx.lifecycle:lifecycle-runtime-ktx:${Versions.X_LIFECYCLE_KTX}"
 
-    fun getKtxGroup() = arrayOf(X_CORE_KTX, X_ACTIVITY_KTX, X_LIFECYCLE_VIEWMODEL_KTX, X_LIFECYCLE_RUNTIME_KTX)
+    fun getKtxGroup() =
+        arrayOf(X_CORE_KTX, X_ACTIVITY_KTX, X_LIFECYCLE_VIEWMODEL_KTX, X_LIFECYCLE_RUNTIME_KTX)
 
     const val X_RECYCLER_VIEW = "androidx.recyclerview:recyclerview:${Versions.X_RECYCLER_VIEW}"
-    const val X_CONSTRAINT_LAYOUT = "androidx.constraintlayout:constraintlayout:${Versions.X_CONSTRAINT_LAYOUT}"
-    const val X_COORDINATOR_LAYOUT = "androidx.coordinatorlayout:coordinatorlayout:${Versions.X_COORDINATOR_LAYOUT}"
+    const val X_CONSTRAINT_LAYOUT =
+        "androidx.constraintlayout:constraintlayout:${Versions.X_CONSTRAINT_LAYOUT}"
+    const val X_COORDINATOR_LAYOUT =
+        "androidx.coordinatorlayout:coordinatorlayout:${Versions.X_COORDINATOR_LAYOUT}"
 
     // Material
     const val MATERIAL = "com.google.android.material:material:${Versions.MATERIAL}"
@@ -56,7 +61,8 @@ object Dependencies {
 
     //Coroutines
     const val COROUTINES = "org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.COROUTINES}"
-    const val COROUTINES_ANDROID = "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Versions.COROUTINES}"
+    const val COROUTINES_ANDROID =
+        "org.jetbrains.kotlinx:kotlinx-coroutines-android:${Versions.COROUTINES}"
 
     fun getCoroutinesGroup() = arrayOf(COROUTINES, COROUTINES_ANDROID)
 
@@ -67,14 +73,22 @@ object Dependencies {
     fun getTensorFlowLiteGroup() = arrayOf(TENSORFLOW_LITE, TENSORFLOW_LITE_GPU)
 
     // Compose
-    const val COMPOSE_RUNTIME = "androidx.compose:compose-runtime:${Versions.COMPOSE_VERSION}"
-    const val UI_FRAMEWORK = "androidx.ui:ui-framework:${Versions.COMPOSE_VERSION}"
-    const val UI_FOUNDATION = "androidx.ui:ui-foundation:${Versions.COMPOSE_VERSION}"
-    const val UI_TOOLING = "androidx.ui:ui-tooling:${Versions.COMPOSE_VERSION}"
-    const val UI_LAYOUT = "androidx.ui:ui-layout:${Versions.COMPOSE_VERSION}"
-    const val UI_MATERIAL = "androidx.ui:ui-material:${Versions.COMPOSE_VERSION}"
+    const val COMPOSE_UI = "androidx.compose.ui:ui:${Versions.COMPOSE_VERSION}"
+    const val COMPOSE_ACTIVITY = "androidx.activity:activity-compose:${Versions.COMPOSE_ACTIVITY_VERSION}"
+    const val COMPOSE_UI_TOOLING = "androidx.compose.ui:ui-tooling:${Versions.COMPOSE_VERSION}"
+    const val COMPOSE_FOUNDATION = "androidx.compose.foundation:foundation:${Versions.COMPOSE_VERSION}"
+    const val COMPOSE_MATERIAL = "androidx.compose.material:material:${Versions.COMPOSE_VERSION}"
+    const val COMPOSE_RUNTIME_LIVEDATA = "androidx.compose.runtime:runtime-livedata:${Versions.COMPOSE_VERSION}"
 
-    fun getComposeGroup() = arrayOf(COMPOSE_RUNTIME,UI_FRAMEWORK, UI_FOUNDATION, UI_TOOLING, UI_LAYOUT, UI_MATERIAL)
+
+    fun getComposeGroup() = arrayOf(
+        COMPOSE_UI,
+        COMPOSE_ACTIVITY,
+        COMPOSE_UI_TOOLING,
+        COMPOSE_FOUNDATION,
+        COMPOSE_MATERIAL,
+        COMPOSE_RUNTIME_LIVEDATA
+    )
 
     object Versions {
         const val KOIN = "2.0.1"
@@ -94,7 +108,8 @@ object Dependencies {
 
         const val TENSORFLOW_LITE = "1.14.0"
 
-        const val COMPOSE_VERSION = "0.1.0-dev06"
+        const val COMPOSE_VERSION = "1.0.1"
+        const val COMPOSE_ACTIVITY_VERSION = "1.3.1"
     }
 }
 

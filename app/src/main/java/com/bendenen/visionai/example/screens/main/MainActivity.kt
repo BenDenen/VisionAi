@@ -3,14 +3,15 @@ package com.bendenen.visionai.example.screens.main
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
-import androidx.ui.core.setContent
 import com.bendenen.visionai.example.screens.artisticstyletransfer.ArtisticStyleTransferActivity
 import com.bendenen.visionai.example.screens.bodysegmentation.BodySegmentationActivity
 import com.bendenen.visionai.example.screens.main.ui.MainScreenLayout
 import com.bendenen.visionai.example.screens.main.viewmodel.MainViewModel
+import com.bendenen.visionai.example.ui.AppTheme
 import org.koin.androidx.scope.currentScope
 
 class MainActivity : AppCompatActivity() {
@@ -20,10 +21,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MainScreenLayout(
-                { viewModel.requestStyleTransfer() },
-                { viewModel.requestSegmentation() }
-            )
+            AppTheme {
+                MainScreenLayout(
+                    { viewModel.requestStyleTransfer() },
+                    { viewModel.requestSegmentation() }
+                )
+            }
+
         }
     }
 

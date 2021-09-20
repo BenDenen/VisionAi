@@ -7,5 +7,6 @@ plugins {
 }
 
 repositories {
+    google()
     jcenter()
 }

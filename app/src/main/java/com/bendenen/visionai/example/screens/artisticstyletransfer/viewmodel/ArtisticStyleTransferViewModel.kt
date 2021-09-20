@@ -3,6 +3,8 @@ package com.bendenen.visionai.example.screens.artisticstyletransfer.viewmodel
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bendenen.visionai.VisionAi
@@ -27,7 +29,11 @@ class ArtisticStyleTransferViewModel(
     private val getBlendModeListUseCase: GetBlendModeListUseCase
 ) : ViewModel(), BlendModeAdapterCallback, VisionAi.ResultListener {
 
-    val state: ArtisticStyleTransferLayoutState = ArtisticStyleTransferLayoutState()
+    val state: LiveData<ArtisticStyleTransferLayoutState>
+        get() = mutableState
+
+    private val mutableState = MutableLiveData(ArtisticStyleTransferLayoutState())
+
     val handler = ArtisticStyleTransferLayoutHandler(
         stylesBlockHandler = StylesBlockHandler(
             { style -> onStyleClick(style) },
@@ -42,12 +48,17 @@ class ArtisticStyleTransferViewModel(
 
     fun initWithVideoPath(videoUri: Uri) {
         viewModelScope.launch {
-            state.updateToVideoLoadingState()
+            mutableState.postValue(state.value?.toVideoLoadingState())
             styleTransferFunctionsUseCase.initVisionAi(
                 videoUri,
                 "temp.mp4"
             )
-            state.updateToVideoLoadedState(styleTransferFunctionsUseCase.getPreview(), getStyleListUseCase.getStyleList())
+            mutableState.postValue(
+                state.value?.toVideoLoadedState(
+                    styleTransferFunctionsUseCase.getPreview(),
+                    getStyleListUseCase.getStyleList()
+                )
+            )
         }
     }
 
@@ -57,9 +68,15 @@ class ArtisticStyleTransferViewModel(
 
     private fun onStyleClick(style: Style) {
         viewModelScope.launch {
-            state.updateToStyleProcessingState()
+            mutableState.postValue(
+                state.value?.toStyleProcessingState()
+            )
             styleTransferFunctionsUseCase.initStyle(style)
-            state.updateToStyleProcessedState(styleTransferFunctionsUseCase.getPreview(), style)
+            mutableState.postValue(
+                state.value?.toStyleProcessedState(
+                    styleTransferFunctionsUseCase.getPreview(), style
+                )
+            )
         }
     }
 
@@ -89,9 +106,14 @@ class ArtisticStyleTransferViewModel(
 
     fun addStyle(style: Style) {
         viewModelScope.launch {
-            state.updateToStyleProcessingState()
+            mutableState.postValue(
+                state.value?.toStyleProcessingState()
+            )
             addNewStyleUseCase.addNewStyle(style)
-            state.updateToVideoLoadedState(styleTransferFunctionsUseCase.getPreview(), getStyleListUseCase.getStyleList())
+            state.value?.toVideoLoadedState(
+                styleTransferFunctionsUseCase.getPreview(),
+                getStyleListUseCase.getStyleList()
+            )
         }
     }
 
