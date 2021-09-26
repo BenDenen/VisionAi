@@ -20,30 +20,37 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.bendenen.visionai.example.R
 
+interface MainScreenLayoutHandler {
+    fun onRequestStyleTransfer() {}
+    fun onRequestSegmentation() {}
+    fun onRequestArCore() {}
+}
+
 @Preview
 @Composable
 fun DefaultPreview() {
-    MainScreenLayout({}, {})
+    MainScreenLayout(object : MainScreenLayoutHandler {})
 }
 
 @Composable
 fun MainScreenLayout(
-    requestStyleTransferAction: () -> Unit,
-    requestSegmentationAction: () -> Unit,
+    handler: MainScreenLayoutHandler
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Tile(R.drawable.starry_night, R.string.request_style_transfer, requestStyleTransferAction)
-        }
-
+        Tile(
+            R.drawable.starry_night,
+            R.string.request_style_transfer
+        ) { handler.onRequestSegmentation() }
+        Tile(
+            R.drawable.arcore_dev,
+            R.string.request_ar_core
+        ) { handler.onRequestArCore() }
     }
+
 }
 
 @Composable

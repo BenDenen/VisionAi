@@ -23,8 +23,7 @@ class MainActivity : AppCompatActivity() {
         setContent {
             AppTheme {
                 MainScreenLayout(
-                    { viewModel.requestStyleTransfer() },
-                    { viewModel.requestSegmentation() }
+                    viewModel.layoutHandler
                 )
             }
 

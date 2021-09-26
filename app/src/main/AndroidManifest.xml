@@ -27,6 +27,7 @@
         </activity>
         <activity android:name="com.bendenen.visionai.example.screens.artisticstyletransfer.ArtisticStyleTransferActivity" />
         <activity android:name="com.bendenen.visionai.example.screens.bodysegmentation.BodySegmentationActivity" />
+        <activity android:name="com.bendenen.visionai.example.screens.arcore.ArCoreActivity" />
     </application>
 
 </manifest>
